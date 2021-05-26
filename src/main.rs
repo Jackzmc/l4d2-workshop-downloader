@@ -1,6 +1,4 @@
-use dialoguer::{theme::ColorfulTheme, Confirm, Select};
-use indicatif::ProgressBar;
-use std::{borrow::Cow};
+use dialoguer::{theme::ColorfulTheme, Select};
 
 mod workshop;
 mod menu_import;
@@ -14,25 +12,16 @@ const SELECTIONS: &'static [&'static str] = &[
 
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    
-
-    let selection = Select::with_theme(&ColorfulTheme::default())
-        .with_prompt("Pick a option")
-        .default(0)
-        .items(&SELECTIONS)
-        .interact()
-        .unwrap();
-    if selection == 0 {
-        menu_import::handler()?;
-    } else {
-        println!("Option not supported.");
+    loop {    
+        match Select::with_theme(&ColorfulTheme::default())
+            .with_prompt("Pick a option")
+            .default(0)
+            .items(&SELECTIONS)
+            .interact()
+            .unwrap() 
+        {
+            0 => menu_import::handler()?,
+            _ => println!("Option not implemented.")
+        }
     }
-    Ok(())
-}
-
-fn setup_spinner(msg: impl Into<Cow<'static, str>>) -> ProgressBar {
-    let spinner: ProgressBar = ProgressBar::new_spinner()
-        .with_message(msg);
-    spinner.enable_steady_tick(1000u64);
-    spinner
 }

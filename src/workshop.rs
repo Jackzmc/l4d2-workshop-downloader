@@ -92,7 +92,3 @@ pub fn get_vpk_details(client: reqwest::blocking::Client, vpks: &[String]) -> Re
 
     Ok(details_final)
 }
-
-pub fn save_vpk() {
-
-}
