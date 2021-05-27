@@ -14,8 +14,8 @@ const SELECTIONS: &'static [&'static str] = &[
 ];
 
 const INITIAL_SETUP_OPTIONS: &'static [&'static str] = &[
-    "Use Current Path",
-    "Select a path",
+    "Use Current Directory",
+    "Input a path",
 ];
 
 //#[tokio::main]
@@ -49,6 +49,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 fn prompt_for_path() -> std::path::PathBuf {
     match Select::with_theme(&ColorfulTheme::default())
+        .with_prompt("Initial Setup - Set L4D2 Addons Folder")
         .items(&INITIAL_SETUP_OPTIONS)
         .default(0)
         .interact()
@@ -60,6 +61,8 @@ fn prompt_for_path() -> std::path::PathBuf {
                 .with_prompt("Enter a folder location")
                 .interact_text().unwrap();
             std::path::PathBuf::from(folder)
+
+            //TODO: Verify path
         }
         _ => panic!("Item is not valid")
     }
