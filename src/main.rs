@@ -5,6 +5,8 @@ use std::path::PathBuf;
 mod workshop;
 mod menu_import;
 mod menu_update;
+mod menu_search;
+mod menu_manage;
 mod util;
 mod meta;
 
@@ -49,6 +51,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         {
             0 => menu_import::handler(&config)?,
             1 => menu_update::handler(&config)?,
+            2 => menu_search::handler(&config)?,
+            3 => menu_manage::handler(&config)?,
             _ => println!("Option not implemented.")
         }
     }
