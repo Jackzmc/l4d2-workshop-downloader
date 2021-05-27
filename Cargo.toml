@@ -1,5 +1,5 @@
 [package]
-name = "workshop-manager"
+name = "l4d2-workshop-manager"
 version = "0.1.0"
 authors = ["Jackz <me@jackz.me>"]
 edition = "2018"

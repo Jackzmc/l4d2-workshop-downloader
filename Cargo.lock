@@ -411,6 +411,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "l4d2-workshop-manager"
+version = "0.1.0"
+dependencies = [
+ "console",
+ "dialoguer",
+ "indicatif",
+ "rayon",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tinyfiledialogs",
+ "tokio",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1234,21 +1249,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0120db82e8a1e0b9fb3345a539c478767c0048d842860994d96113d5b667bd69"
 dependencies = [
  "winapi",
-]
-
-[[package]]
-name = "workshop-manager"
-version = "0.1.0"
-dependencies = [
- "console",
- "dialoguer",
- "indicatif",
- "rayon",
- "reqwest",
- "serde",
- "serde_json",
- "tinyfiledialogs",
- "tokio",
 ]
 
 [[package]]

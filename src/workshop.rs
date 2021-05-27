@@ -29,11 +29,13 @@ pub struct WorkshopItemTag {
     tag: String
 }
 
+#[doc(hidden)]
 #[derive(Serialize, Deserialize)]
 struct WSResponse {
     response: WSResponseBody
 }
 
+#[doc(hidden)]
 #[derive(Serialize, Deserialize)]
 struct WSResponseBody {
     publishedfiledetails: Vec<WorkshopItem>
