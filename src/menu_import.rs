@@ -1,23 +1,19 @@
 use crate::workshop;
+use crate::util;
+use crate::meta;
+
+
 use dialoguer::{theme::ColorfulTheme, Confirm, MultiSelect};
-use indicatif::ProgressBar;
-use std::{borrow::Cow, fs, path::PathBuf};
-use serde::{Deserialize, Serialize};
+use std::{fs, path::PathBuf};
 
 const ADDONS_FOLDER: &str = "D:\\_temp\\rust_ws_test"; 
 const DIR: &str = "D:\\_temp\\rust_ws_test\\workshop";
 
 const MAX_ITEM_PER_PAGE: usize = 20;
 
-#[derive(Serialize, Deserialize)]
-struct DownloadEntry {
-    title: String,
-    publishedfileid: String,
-    time_updated: usize
-}
 
-pub fn handler() -> Result<(), Box<dyn std::error::Error>> {
-    let spinner = setup_spinner("Fetching VPKS...");
+pub fn handler(_config: &meta::Config) -> Result<(), Box<dyn std::error::Error>> {
+    let spinner = util::setup_spinner("Fetching VPKS...");
     let vpks = workshop::get_vpks(DIR)?;
     spinner.finish_with_message("Fetched VPKs");
 
@@ -28,13 +24,15 @@ pub fn handler() -> Result<(), Box<dyn std::error::Error>> {
 
     let client = reqwest::blocking::Client::new();
 
-    let spinner = setup_spinner("Getting VPK Details...");
-    let details = workshop::get_vpk_details(client, &vpks)?;
+    let spinner = util::setup_spinner("Getting VPK Details...");
+    let details = workshop::get_vpk_details(&client, &vpks)?;
     spinner.finish_with_message("Fetched VPK Details");
 
-    let mut selected_vpks: Vec<DownloadEntry> = Vec::new();
+    let mut selected_vpks: Vec<workshop::DownloadEntry> = Vec::new();
     let mut multiselected: Vec<String> = Vec::new();
     let size = vpks.len();
+    multiselected.reserve(MAX_ITEM_PER_PAGE);
+    selected_vpks.reserve(size);
     let pages = (size as f32 / MAX_ITEM_PER_PAGE as f32).ceil() as usize;
 
     let defaults = vec![true; size];
@@ -60,7 +58,7 @@ pub fn handler() -> Result<(), Box<dyn std::error::Error>> {
 
         for i in selections {
             let item = &details[i];
-            let download = DownloadEntry {
+            let download = workshop::DownloadEntry {
                 title: item.title.to_string(),
                 publishedfileid: item.publishedfileid.to_string(),
                 time_updated: item.time_updated
@@ -87,12 +85,4 @@ pub fn handler() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     Ok(())
-}
-
-
-fn setup_spinner(msg: impl Into<Cow<'static, str>>) -> ProgressBar {
-    let spinner: ProgressBar = ProgressBar::new_spinner()
-        .with_message(msg);
-    spinner.enable_steady_tick(1000u64);
-    spinner
 }
