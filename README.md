@@ -4,12 +4,18 @@ A work in progress CLI tool that manages workshop items, as the current workshop
 
 Current features:
 
-- [x] Import Workshop VPKs
-- [ ] Update existing VPKs
-- [ ] Search for items
-- [ ] Manage existing items
+- ✔️ Import Workshop VPKs
+- ⌛ **(In progress)** Update existing VPKs
+- ❌ Search for items
+- ❌ Manage existing items
+
+On first setup, it will ask you for your L4D2 addons folder which you can either choose the exe's location (recommended to put it inside the addons folder), or manual path. 
+
+## Preview
+
+https://user-images.githubusercontent.com/4030546/119769078-6d5f0580-be7f-11eb-8c8c-7e64084af7f5.mp4
 
 
-Currently import workshop vpks is the only working option which will take the vpks in your workshop folder, find the names and move them to your addons folder, to then be updated at a later date using a meta file (downloads.json). Currently the filepaths are hardcoded at this time. 
+## License
 
-In the future you will put the exe in your addons folder.
+MIT
