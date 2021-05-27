@@ -4,7 +4,7 @@ use crate::meta;
 
 
 use dialoguer::{theme::ColorfulTheme, Confirm, MultiSelect};
-use std::{fs, path::PathBuf};
+use std::{fs};
 
 const MAX_ITEMS_PER_PAGE: usize = 20;
 
@@ -15,7 +15,7 @@ pub fn handler(_config: &meta::Config) -> Result<(), Box<dyn std::error::Error>>
     let fileids = workshop::get_vpk_ids(&_config.gamedir.join("workshop"))?;
     spinner.finish_with_message("Fetched VPKs");
 
-    if fileids.len() == 0 {
+    if fileids.is_empty() {
         println!("Import complete: No items were to be imported.");
         return Ok(())
     }
@@ -41,11 +41,7 @@ pub fn handler(_config: &meta::Config) -> Result<(), Box<dyn std::error::Error>>
         page_items.clear();
         let start_val = page * MAX_ITEMS_PER_PAGE;
         //Add items to the page
-        for i in start_val..start_val+MAX_ITEMS_PER_PAGE {
-            if i >= size {
-                break;
-            }
-            let item = &details[i];
+        for (i, item) in details.iter().enumerate().skip(start_val).take(MAX_ITEMS_PER_PAGE) {
             page_items.push(format!("{i}. {title} - {id}", i=i+1, title=item.title, id=item.publishedfileid))
         }
         //Get the selection

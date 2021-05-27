@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::{fs, io, path::PathBuf, collections::HashMap};
+use std::{fs, io, path::PathBuf, path::Path, collections::HashMap};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct WorkshopItem {
@@ -49,7 +49,7 @@ pub struct DownloadEntry {
 }
 
 /// Gets all *.vpk files in a directory
-pub fn get_vpk_ids(dir: &PathBuf) -> Result<Vec<String>, String> {
+pub fn get_vpk_ids(dir: &Path) -> Result<Vec<String>, String> {
     let mut entries: Vec<PathBuf> = match fs::read_dir(dir) {
         Ok(file) => {
             match file.map(|res| res.map(|e| e.path()))
@@ -70,9 +70,8 @@ pub fn get_vpk_ids(dir: &PathBuf) -> Result<Vec<String>, String> {
 
     for entry in entries {
         if !entry.is_dir() {
-            match entry.extension().and_then(std::ffi::OsStr::to_str) {
-                Some("vpk") => vpks.push(entry.file_stem().unwrap().to_str().unwrap().to_owned()),
-                _ => {}
+            if let Some("vpk") = entry.extension().and_then(std::ffi::OsStr::to_str) {
+                vpks.push(entry.file_stem().unwrap().to_str().unwrap().to_owned())
             }
         }
     }

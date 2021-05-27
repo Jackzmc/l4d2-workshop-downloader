@@ -1,7 +1,6 @@
-use dialoguer::{theme::ColorfulTheme, Select, Input};
+use dialoguer::{theme::ColorfulTheme, Select};
 use console::style;
 use std::path::PathBuf;
-use tinyfiledialogs;
 
 mod workshop;
 mod menu_import;
@@ -9,14 +8,14 @@ mod menu_update;
 mod util;
 mod meta;
 
-const SELECTIONS: &'static [&'static str] = &[
+const SELECTIONS: &[&str] = &[
     "Import Workshop VPKs",
     "Update existing VPKs",
     "Search for new item",
     "Manage Existing Items"
 ];
 
-const INITIAL_SETUP_OPTIONS: &'static [&'static str] = &[
+const INITIAL_SETUP_OPTIONS: &[&str] = &[
     "Use Current Directory",
     "Choose a directory",
 ];
@@ -51,7 +50,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             1 => menu_update::handler(&config)?,
             _ => println!("Option not implemented.")
         }
-        println!("")
+        println!()
     }
 }
 

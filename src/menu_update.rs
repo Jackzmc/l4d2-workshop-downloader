@@ -1,10 +1,10 @@
 //TODO: Grab items in json, fetch_vpk_details() -> check if date > old date, download file_url
-use std::{fs, io, path::PathBuf, error::Error, thread};
+use std::{fs};
 use indicatif::{HumanDuration};
-use dialoguer::{theme::ColorfulTheme, Confirm, MultiSelect};
+use dialoguer::{theme::ColorfulTheme, Confirm};
 use indicatif::{ProgressBar, ProgressStyle};
-use std::io::{Write};
 use std::clone::Clone;
+use std::io::Write;
 
 use crate::{meta, util, workshop};
 
@@ -13,7 +13,7 @@ pub fn handler(config: &meta::Config) -> Result<(), Box<dyn std::error::Error>> 
 
     //Get downloads from meta file & check if any
     let downloads = &config.downloads;
-    if config.downloads.len() == 0 {
+    if config.downloads.is_empty() {
         println!("There are no items to update.");
         return Ok(())
     }
@@ -31,7 +31,7 @@ pub fn handler(config: &meta::Config) -> Result<(), Box<dyn std::error::Error>> 
 
     let mut outdated: Vec<workshop::WorkshopItem> = Vec::new();
 
-    for (i, entry) in downloads.into_iter().enumerate() {
+    for (i, entry) in downloads.iter().enumerate() {
         //TODO: Move '>=' to '>' once testing complete
         //Check if any entry in meta is outdated
         if details[i].time_updated >= entry.time_updated {
@@ -42,7 +42,7 @@ pub fn handler(config: &meta::Config) -> Result<(), Box<dyn std::error::Error>> 
         }
     }
 
-    if outdated.len() == 0 {
+    if outdated.is_empty() {
         println!("No items need updating.\n");
         return Ok(())
     }
@@ -77,12 +77,11 @@ pub fn handler(config: &meta::Config) -> Result<(), Box<dyn std::error::Error>> 
                 .send().expect("Could not fetch");
             
 
-            for byte in response.bytes() {
-                match dest.write_all(&byte) {
-                    Ok(()) => pb.inc(byte.len() as u64),
-                    _ => pb.finish_with_message(format!("Updated {}", item.title))
-                }
+            if let Ok(byte) = response.bytes() {
+                pb.inc(byte.len() as u64);
+                dest.write_all(&byte)?;
             }
+            pb.finish_with_message(format!("Updated {}", item.title));
         }
         spinner.finish();
     } else {
