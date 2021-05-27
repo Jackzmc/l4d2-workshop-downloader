@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::{fs, io, path::PathBuf, path::Path, collections::HashMap};
+use std::{fs, io, path::PathBuf, path::Path, collections::HashMap, fmt};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct WorkshopItem {
@@ -23,6 +23,11 @@ pub struct WorkshopItem {
     tags: Vec<WorkshopItemTag>
 }
 
+impl fmt::Display for WorkshopItem {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} - {}", self.title, self.publishedfileid)
+    }
+}
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct WorkshopItemTag {
@@ -89,7 +94,7 @@ pub fn get_file_details(client: &reqwest::blocking::Client, fileids: &[String]) 
         params.insert(name, vpk.to_string());
     }
     let details = client.post("https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/")
-        .header("User-Agent", "L4D2-Workshop-Downloader")
+        .header("User-Agent", format!("L4D2-Workshop-Downloader/v{}", env!("CARGO_PKG_VERSION")))
         .header("Content-Type", "application/x-www-form-urlencoded")
         .form(&params)
         .send()?
