@@ -1,5 +1,7 @@
 use dialoguer::{theme::ColorfulTheme, Select, Input};
 use console::style;
+use std::path::PathBuf;
+use tinyfiledialogs;
 
 mod workshop;
 mod menu_import;
@@ -16,26 +18,27 @@ const SELECTIONS: &'static [&'static str] = &[
 
 const INITIAL_SETUP_OPTIONS: &'static [&'static str] = &[
     "Use Current Directory",
-    "Input a path",
+    "Choose a directory",
 ];
 
 //#[tokio::main]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let config = match meta::get_config() {
-        Some(config) => {
-            println!("{} {}", style("Using saved directory:").bold(), config.gamedir);
+    
+
+    let config = 
+        if let Some(config) = meta::get_config() {
+            println!("{} {}", style("Using saved directory:").bold(), config.get_game_path_str().expect("< no path >"));
             config
-        },
-        None => {
-            let directory = prompt_for_path();
+        }else {
+            let path: PathBuf = prompt_for_path();
+            println!("PATH SELECTED: {}", path.to_string_lossy());
             let config = meta::Config {
-                gamedir: directory.into_os_string().into_string().unwrap(),
+                gamedir: path,
                 downloads: Vec::new()
             };
             std::fs::write("downloader_meta.json", serde_json::to_string(&config)?)?;
             config
-        }
-    };
+        };
 
     loop {    
         match Select::with_theme(&ColorfulTheme::default())
@@ -52,7 +55,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 }
 
-fn prompt_for_path() -> std::path::PathBuf {
+fn prompt_for_path() -> PathBuf {
     match Select::with_theme(&ColorfulTheme::default())
         .with_prompt("Initial Setup - Set L4D2 Addons Folder")
         .items(&INITIAL_SETUP_OPTIONS)
@@ -62,12 +65,23 @@ fn prompt_for_path() -> std::path::PathBuf {
     {
         0 => std::env::current_dir().unwrap(),
         1 => {
-            let folder: String = Input::new()
-                .with_prompt("Enter a folder location")
-                .interact_text().unwrap();
-            std::path::PathBuf::from(folder)
-
-            //TODO: Verify path
+            match tinyfiledialogs::open_file_dialog(
+                "Choose where Left 4 Dead 2 is installed", 
+                "",
+                Some((&["left4dead2.exe"], "left4dead2.exe"))
+            ) {
+                Some(file_path) => {
+                    PathBuf::from(file_path)
+                    .parent()
+                    .unwrap()
+                    .join("left4dead2")
+                    .join("addons")
+                },
+                _ => {
+                    println!("A valid directory was not specified. Exiting.");
+                    std::process::exit(1);
+                }    
+            }
         }
         _ => panic!("Item is not valid")
     }
