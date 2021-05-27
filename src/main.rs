@@ -22,11 +22,11 @@ const INITIAL_SETUP_OPTIONS: &[&str] = &[
 
 //#[tokio::main]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    
+    println!("{} v{}", style("L4D2 Workshop Downloader").bold(), env!("CARGO_PKG_VERSION"));
     //Grab the config or start initial setup
     let config = 
         if let Some(config) = meta::get_config() {
-            println!("{} {}", style("Using saved directory:").bold(), config.get_game_path_str().expect("< no path >"));
+            println!("{} \"{}\"", style("Using saved directory:").bold(), config.get_game_path_str().expect("< no path >"));
             config
         }else {
             let path: PathBuf = prompt_for_path();
@@ -40,6 +40,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         };
 
     loop {    
+        println!();
         match Select::with_theme(&ColorfulTheme::default())
             .with_prompt("Pick a option")
             .items(&SELECTIONS)
@@ -50,7 +51,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             1 => menu_update::handler(&config)?,
             _ => println!("Option not implemented.")
         }
-        println!()
     }
 }
 
