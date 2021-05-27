@@ -46,7 +46,7 @@ pub struct DownloadEntry {
     pub time_updated: usize
 }
 
-pub fn get_vpks(dir: &str) -> Result<Vec<String>, String> {
+pub fn get_vpks(dir: &PathBuf) -> Result<Vec<String>, String> {
     let mut entries: Vec<PathBuf> = match fs::read_dir(dir) {
         Ok(file) => {
             match file.map(|res| res.map(|e| e.path()))
