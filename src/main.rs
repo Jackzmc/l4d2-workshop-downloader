@@ -1,4 +1,5 @@
 use dialoguer::{theme::ColorfulTheme, Select, Input};
+use console::style;
 
 mod workshop;
 mod menu_import;
@@ -21,7 +22,10 @@ const INITIAL_SETUP_OPTIONS: &'static [&'static str] = &[
 //#[tokio::main]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config = match meta::get_config() {
-        Some(config) => config,
+        Some(config) => {
+            println!("{} {}", style("Using saved directory:").bold(), config.gamedir);
+            config
+        },
         None => {
             let directory = prompt_for_path();
             let config = meta::Config {
