@@ -44,6 +44,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             1 => menu_update::handler(&config)?,
             _ => println!("Option not implemented.")
         }
+        println!("")
     }
 }
 

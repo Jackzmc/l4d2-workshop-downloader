@@ -5,19 +5,13 @@ use dialoguer::{theme::ColorfulTheme, Confirm, MultiSelect};
 use indicatif::{ProgressBar, ProgressStyle};
 use std::io::{Write};
 use std::clone::Clone;
-use crate::meta;
 
-
-
-use crate::workshop;
-use crate::util;
-
-const ADDONS_FOLDER: &str = "D:\\_temp\\rust_ws_test"; 
+use crate::{meta, util, workshop};
 
 pub fn handler(_config: &meta::Config) -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::blocking::Client::new();
 
-    let downloads: Vec<workshop::DownloadEntry> = get_downloads().unwrap();
+    let downloads = &_config.downloads;
     let ids: Vec<String> = downloads
         .iter()
         .map(|download| download.publishedfileid.clone())
@@ -30,6 +24,7 @@ pub fn handler(_config: &meta::Config) -> Result<(), Box<dyn std::error::Error>>
     let mut outdated: Vec<workshop::WorkshopItem> = Vec::new();
 
     for (i, entry) in downloads.into_iter().enumerate() {
+        //TODO: Move '>=' to '>' once testing complete
         if details[i].time_updated >= entry.time_updated {
             let duration = std::time::Duration::from_secs(details[i].time_updated as u64 - entry.time_updated as u64);
             let hd = HumanDuration(duration);
@@ -49,7 +44,7 @@ pub fn handler(_config: &meta::Config) -> Result<(), Box<dyn std::error::Error>>
         .interact()
         .unwrap()
     {
-        let directory = PathBuf::from(ADDONS_FOLDER);
+        let directory = _config.get_game_path();
 
         let spinner = util::setup_spinner(format!("Updating {} items", outdated.len()));
         for item in outdated.iter() {
@@ -84,12 +79,4 @@ pub fn handler(_config: &meta::Config) -> Result<(), Box<dyn std::error::Error>>
         println!("Update was cancelled. Returning to menu.");
     }
     Ok(())
-}
-
-fn get_downloads() -> Result<Vec<workshop::DownloadEntry>, Box<dyn Error>> {
-    let file = fs::File::open(PathBuf::from(ADDONS_FOLDER).join("downloads.json"))?;
-    let reader = io::BufReader::new(file);
-    let u = serde_json::from_reader(reader)?;
-
-    Ok(u)
 }
