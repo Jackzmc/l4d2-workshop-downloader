@@ -1,8 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::{fs, io, path::PathBuf, collections::HashMap};
 
-
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct WorkshopItem {
     pub publishedfileid: String,
     result: i8,
@@ -24,7 +23,8 @@ pub struct WorkshopItem {
     tags: Vec<WorkshopItemTag>
 }
 
-#[derive(Serialize, Deserialize)]
+
+#[derive(Serialize, Deserialize, Clone)]
 pub struct WorkshopItemTag {
     tag: String
 }
@@ -37,6 +37,13 @@ struct WSResponse {
 #[derive(Serialize, Deserialize)]
 struct WSResponseBody {
     publishedfiledetails: Vec<WorkshopItem>
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct DownloadEntry {
+    pub title: String,
+    pub publishedfileid: String,
+    pub time_updated: usize
 }
 
 pub fn get_vpks(dir: &str) -> Result<Vec<String>, String> {
@@ -69,7 +76,7 @@ pub fn get_vpks(dir: &str) -> Result<Vec<String>, String> {
     Ok(vpks)
 }
 
-pub fn get_vpk_details(client: reqwest::blocking::Client, vpks: &[String]) -> Result<Vec<WorkshopItem>, Box<dyn std::error::Error>> {
+pub fn get_vpk_details(client: &reqwest::blocking::Client, vpks: &[String]) -> Result<Vec<WorkshopItem>, Box<dyn std::error::Error>> {
     let mut params = HashMap::new();
     let length = vpks.len().to_string();
     params.insert("itemcount".to_string(), length);
