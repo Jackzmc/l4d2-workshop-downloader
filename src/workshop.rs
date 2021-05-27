@@ -46,7 +46,8 @@ pub struct DownloadEntry {
     pub time_updated: usize
 }
 
-pub fn get_vpks(dir: &PathBuf) -> Result<Vec<String>, String> {
+/// Gets all *.vpk files in a directory
+pub fn get_vpk_ids(dir: &PathBuf) -> Result<Vec<String>, String> {
     let mut entries: Vec<PathBuf> = match fs::read_dir(dir) {
         Ok(file) => {
             match file.map(|res| res.map(|e| e.path()))
@@ -77,11 +78,12 @@ pub fn get_vpks(dir: &PathBuf) -> Result<Vec<String>, String> {
     Ok(vpks)
 }
 
-pub fn get_vpk_details(client: &reqwest::blocking::Client, vpks: &[String]) -> Result<Vec<WorkshopItem>, Box<dyn std::error::Error>> {
+/// Fetches the latest WorkshopItem per each addon id
+pub fn get_file_details(client: &reqwest::blocking::Client, fileids: &[String]) -> Result<Vec<WorkshopItem>, Box<dyn std::error::Error>> {
     let mut params = HashMap::new();
-    let length = vpks.len().to_string();
+    let length = fileids.len().to_string();
     params.insert("itemcount".to_string(), length);
-    for (i, vpk) in vpks.iter().enumerate() {
+    for (i, vpk) in fileids.iter().enumerate() {
         let name = format!("publishedfileids[{i}]", i=i);
         params.insert(name, vpk.to_string());
     }

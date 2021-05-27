@@ -13,8 +13,6 @@ impl Config {
     pub fn get_game_path_str(&self) -> Option<&str> {
         self.gamedir.to_str()
     }
-
-    
 }
 
 pub fn get_config() -> Option<Config> {

@@ -8,28 +8,32 @@ use std::clone::Clone;
 
 use crate::{meta, util, workshop};
 
-pub fn handler(_config: &meta::Config) -> Result<(), Box<dyn std::error::Error>> {
+pub fn handler(config: &meta::Config) -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::blocking::Client::new();
 
-    let downloads = &_config.downloads;
-    if downloads.len() == 0 {
+    //Get downloads from meta file & check if any
+    let downloads = &config.downloads;
+    if config.downloads.len() == 0 {
         println!("There are no items to update.");
         return Ok(())
     }
 
-    let ids: Vec<String> = downloads
+    //Get a array of addon ids
+    let fileids: Vec<String> = downloads
         .iter()
         .map(|download| download.publishedfileid.clone())
         .collect();
 
+    //Using above list, get the latest workshop info (key is time_updated)
     let spinner = util::setup_spinner("Fetching Latest File Info...");
-    let details = workshop::get_vpk_details(&client, &ids).expect("Failed to get VPK details");
+    let details = workshop::get_file_details(&client, &fileids).expect("Failed to get VPK details");
     spinner.finish_with_message("Fetched");
 
     let mut outdated: Vec<workshop::WorkshopItem> = Vec::new();
 
     for (i, entry) in downloads.into_iter().enumerate() {
         //TODO: Move '>=' to '>' once testing complete
+        //Check if any entry in meta is outdated
         if details[i].time_updated >= entry.time_updated {
             let duration = std::time::Duration::from_secs(details[i].time_updated as u64 - entry.time_updated as u64);
             let hd = HumanDuration(duration);
@@ -49,8 +53,9 @@ pub fn handler(_config: &meta::Config) -> Result<(), Box<dyn std::error::Error>>
         .interact()
         .unwrap()
     {
-        let directory = _config.gamedir.clone();
+        let directory = config.gamedir.clone();
 
+        //Section is WIP, need to have || threads to download and hopefully update progress bar w/o blocking
         let spinner = util::setup_spinner(format!("Updating {} items", outdated.len()));
         for item in outdated.iter() {
             let client = client.clone();

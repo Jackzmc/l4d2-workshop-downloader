@@ -24,7 +24,7 @@ const INITIAL_SETUP_OPTIONS: &'static [&'static str] = &[
 //#[tokio::main]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     
-
+    //Grab the config or start initial setup
     let config = 
         if let Some(config) = meta::get_config() {
             println!("{} {}", style("Using saved directory:").bold(), config.get_game_path_str().expect("< no path >"));
