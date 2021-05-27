@@ -11,7 +11,7 @@ const MAX_ITEM_PER_PAGE: usize = 20;
 
 pub fn handler(_config: &meta::Config) -> Result<(), Box<dyn std::error::Error>> {
     let spinner = util::setup_spinner("Fetching VPKS...");
-    let vpks = workshop::get_vpks(&_config.gamedir)?;
+    let vpks = workshop::get_vpks(&_config.get_game_path().join("workshop"))?;
     spinner.finish_with_message("Fetched VPKs");
 
     if vpks.len() == 0 {
