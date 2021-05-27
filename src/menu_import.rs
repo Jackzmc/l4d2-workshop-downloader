@@ -23,7 +23,13 @@ pub fn handler(_config: &meta::Config) -> Result<(), Box<dyn std::error::Error>>
     //Fetch the workshop details for the vpks
     let client = reqwest::blocking::Client::new();
     let spinner = util::setup_spinner("Getting VPK Details...");
-    let details = workshop::get_file_details(&client, &fileids)?;
+    let details: Vec<workshop::WorkshopItem> = match workshop::get_file_details(&client, &fileids) {
+        Ok(details) => details,
+        Err(e) => { 
+            println!("Request failed: {}", e);
+            return Ok(())
+        }
+    };
     spinner.finish_with_message("Fetched VPK Details");
 
     //Setup the list of selected vpks to import, pagination
@@ -34,7 +40,7 @@ pub fn handler(_config: &meta::Config) -> Result<(), Box<dyn std::error::Error>>
     selected_vpks.reserve(size);
     let pages = (size as f32 / MAX_ITEMS_PER_PAGE as f32).ceil() as usize;
 
-    let defaults = vec![true; size];
+    let defaults = vec![true; MAX_ITEMS_PER_PAGE];
 
     //Pagination to show MAX_ITEMS_PER_PAGE
     for page in 0..pages {
