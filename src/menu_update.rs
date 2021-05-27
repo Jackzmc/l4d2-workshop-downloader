@@ -49,7 +49,7 @@ pub fn handler(_config: &meta::Config) -> Result<(), Box<dyn std::error::Error>>
         .interact()
         .unwrap()
     {
-        let directory = _config.get_game_path();
+        let directory = _config.gamedir.clone();
 
         let spinner = util::setup_spinner(format!("Updating {} items", outdated.len()));
         for item in outdated.iter() {

@@ -5,13 +5,13 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct Config {
-    pub gamedir: String,
+    pub gamedir: PathBuf,
     pub downloads: Vec<workshop::DownloadEntry>
 }
 
 impl Config {
-    pub fn get_game_path(&self) -> PathBuf {
-        PathBuf::from(&self.gamedir)
+    pub fn get_game_path_str(&self) -> Option<&str> {
+        self.gamedir.to_str()
     }
 
     

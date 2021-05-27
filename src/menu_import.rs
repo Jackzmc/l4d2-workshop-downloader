@@ -11,7 +11,7 @@ const MAX_ITEM_PER_PAGE: usize = 20;
 
 pub fn handler(_config: &meta::Config) -> Result<(), Box<dyn std::error::Error>> {
     let spinner = util::setup_spinner("Fetching VPKS...");
-    let vpks = workshop::get_vpks(&_config.get_game_path().join("workshop"))?;
+    let vpks = workshop::get_vpks(&_config.gamedir.join("workshop"))?;
     spinner.finish_with_message("Fetched VPKs");
 
     if vpks.len() == 0 {
@@ -71,7 +71,7 @@ pub fn handler(_config: &meta::Config) -> Result<(), Box<dyn std::error::Error>>
         .interact()
         .unwrap()
     {
-        let dest_folder = _config.get_game_path();
+        let dest_folder = _config.gamedir.clone();
         fs::write(dest_folder.join("downloads.json"), serde_json::to_string(&selected_vpks)?)?;
         for item in selected_vpks {
             fs::rename(dest_folder.join(format!("workshop/{}.vpk", item.publishedfileid)), dest_folder.join(format!("{}.vpk", item.publishedfileid)))?;
