@@ -12,13 +12,18 @@ pub fn handler(_config: &meta::Config) -> Result<(), Box<dyn std::error::Error>>
     let client = reqwest::blocking::Client::new();
 
     let downloads = &_config.downloads;
+    if downloads.len() == 0 {
+        println!("There are no items to update.");
+        return Ok(())
+    }
+
     let ids: Vec<String> = downloads
         .iter()
         .map(|download| download.publishedfileid.clone())
         .collect();
 
     let spinner = util::setup_spinner("Fetching Latest File Info...");
-    let details = workshop::get_vpk_details(&client, &ids)?;
+    let details = workshop::get_vpk_details(&client, &ids).expect("Failed to get VPK details");
     spinner.finish_with_message("Fetched");
 
     let mut outdated: Vec<workshop::WorkshopItem> = Vec::new();
