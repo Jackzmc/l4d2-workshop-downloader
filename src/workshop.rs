@@ -67,8 +67,9 @@ pub fn get_vpks(dir: &str) -> Result<Vec<String>, String> {
 
     for entry in entries {
         if !entry.is_dir() {
-            if entry.extension().unwrap() == "vpk" {
-                vpks.push(entry.file_stem().unwrap().to_str().unwrap().to_owned());
+            match entry.extension().and_then(std::ffi::OsStr::to_str) {
+                Some("vpk") => vpks.push(entry.file_stem().unwrap().to_str().unwrap().to_owned()),
+                _ => {}
             }
         }
     }
