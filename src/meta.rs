@@ -1,4 +1,4 @@
-use crate::workshop;
+use steamwebapi;
 
 use std::{path::PathBuf, io, fs, env};
 use serde::{Deserialize, Serialize};
@@ -7,16 +7,16 @@ use serde::{Deserialize, Serialize};
 pub struct Config {
     pub gamedir: PathBuf,
     pub apikey: Option<String>,
-    pub use_proxy_instead: bool,
-    pub downloads: Vec<workshop::DownloadEntry>,
+    pub downloads: Vec<steamwebapi::DownloadEntry>,
     pub include_name: bool
 }
 
+#[allow(dead_code)]
 impl Config {
     pub fn get_game_path_str(&self) -> Option<&str> {
         self.gamedir.to_str()
     }
-    pub fn format_file(&self, item: &workshop::WorkshopItem) -> String {
+    pub fn format_file(&self, item: &steamwebapi::WorkshopItem) -> String {
         if self.include_name {
             format!("{} = {}", title=item.title, id=item.publishedfileid)
         }else{
@@ -27,7 +27,6 @@ impl Config {
         Config {
             gamedir: path,
             apikey: None,
-            use_proxy_instead: false,
             downloads: Vec::new(),
             include_name: true
         }

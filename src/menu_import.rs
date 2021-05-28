@@ -1,7 +1,7 @@
-use crate::workshop::{Workshop, WorkshopItem, DownloadEntry};
 use crate::util;
 use crate::meta;
 
+use steamwebapi::{Workshop, WorkshopItem, DownloadEntry};
 use dialoguer::{theme::ColorfulTheme, Confirm, MultiSelect};
 use std::{fs};
 

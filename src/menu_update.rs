@@ -1,4 +1,4 @@
-use crate::{meta, util, workshop::{Workshop, WorkshopItem}};
+use crate::{meta, util};
 
 use std::{fs};
 use indicatif::{HumanDuration};
@@ -6,6 +6,7 @@ use dialoguer::{theme::ColorfulTheme, Confirm};
 use indicatif::{ProgressBar, ProgressStyle};
 use std::clone::Clone;
 use std::io::Write;
+use steamwebapi::{Workshop, WorkshopItem};
 
 
 pub fn handler(config: &meta::Config, workshop: &Workshop) -> Result<(), Box<dyn std::error::Error>> {

@@ -2,7 +2,6 @@ use dialoguer::{theme::ColorfulTheme, Select, Input};
 use console::style;
 use std::path::PathBuf;
 
-mod workshop;
 mod menu_import;
 mod menu_update;
 mod menu_search;
@@ -14,14 +13,10 @@ mod meta;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("{} v{}", style("L4D2 Workshop Downloader").bold(), env!("CARGO_PKG_VERSION"));
     //Grab the config or start initial setup
-    let mut workshop = workshop::Workshop::new(None);
+    let workshop = steamwebapi::Workshop::new(None);
     //TODO: Add option to save file name 
     let config = 
         if let Some(config) = meta::get_config() {
-            workshop.set_use_proxy(config.use_proxy_instead);
-            if let Some(apikey) = &config.apikey {
-                workshop.set_apikey(apikey.clone());
-            }
             println!("{} \"{}\"", style("Using saved directory:").bold(), &config.get_game_path_str().expect("< no path >"));
             config
         }else {
@@ -29,19 +24,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let mut config = meta::Config {
                 gamedir: path,
                 apikey: None,
-                use_proxy_instead: false,
                 downloads: Vec::new(),
                 include_name: true
             };
             if let Some(prompt_res) = prompt_for_apikey() {
                 config.apikey = prompt_res.apikey;
-                if prompt_res.use_proxy {
-                    workshop.set_use_proxy(true);
-                    config.use_proxy_instead = true
-                }
-                if let Some(apikey) = &config.apikey {
-                    workshop.set_apikey(apikey.clone());
-                }
             }
             
             std::fs::write("downloader_meta.json", serde_json::to_string(&config)?)?;
@@ -107,7 +94,6 @@ fn prompt_for_path() -> PathBuf {
 
 struct ApiKey {
     apikey: Option<String>,
-    use_proxy: bool 
 }
 
 fn prompt_for_apikey() -> Option<ApiKey> {
@@ -117,8 +103,8 @@ fn prompt_for_apikey() -> Option<ApiKey> {
         .with_prompt("Select a choice")
         .items(&[
             "Enter an Steam Web API Key",
-            "Use https://jackz.me/l4d2/workshop.php?mode=search",
-            "Do not use an apikey, disables some options"
+            "Use Proxy - https://jackz.me/l4d2/search_public.php",
+            "Do not use an apikey (disables some options)"
         ])
         .interact()
         .unwrap() 
@@ -130,13 +116,11 @@ fn prompt_for_apikey() -> Option<ApiKey> {
             .unwrap();
             Some(ApiKey {
                 apikey: Some(res),
-                use_proxy: false
             })
         },
         1 => {
             Some(ApiKey {
                 apikey: None,
-                use_proxy: true
             })
         },
         2 => None,

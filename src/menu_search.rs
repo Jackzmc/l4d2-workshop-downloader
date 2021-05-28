@@ -1,11 +1,11 @@
-use crate::workshop::{Workshop, WorkshopItem};
+use steamwebapi::{Workshop, WorkshopItem};
 use crate::util;
 use crate::meta;
 
 use dialoguer::{Input};
 use console::style;
 
-pub fn handler(_config: &meta::Config , workshop: &Workshop) -> Result<(), Box<dyn std::error::Error>> {
+pub fn handler(_config: &meta::Config, workshop: &Workshop) -> Result<(), Box<dyn std::error::Error>> {
     let input : String = Input::new()
         .with_prompt("Enter a search query")
         .interact_text()?;
