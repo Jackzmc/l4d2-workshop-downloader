@@ -1,7 +1,6 @@
-use crate::workshop;
+use crate::workshop::{Workshop, WorkshopItem, DownloadEntry};
 use crate::util;
 use crate::meta;
-
 
 use dialoguer::{theme::ColorfulTheme, Confirm, MultiSelect};
 use std::{fs};
@@ -9,10 +8,10 @@ use std::{fs};
 const MAX_ITEMS_PER_PAGE: usize = 20;
 
 
-pub fn handler(_config: &meta::Config) -> Result<(), Box<dyn std::error::Error>> {
+pub fn handler(_config: &meta::Config, workshop: &Workshop) -> Result<(), Box<dyn std::error::Error>> {
     //Fetch the current vpks in the workshop directory
     let spinner = util::setup_spinner("Fetching VPKS...");
-    let fileids = workshop::get_vpk_ids(&_config.gamedir.join("workshop"))?;
+    let fileids = Workshop::get_vpks_in_folder(&_config.gamedir.join("workshop"))?;
     spinner.finish_with_message("Fetched VPKs");
 
     if fileids.is_empty() {
@@ -22,8 +21,9 @@ pub fn handler(_config: &meta::Config) -> Result<(), Box<dyn std::error::Error>>
 
     //Fetch the workshop details for the vpks
     let client = reqwest::blocking::Client::new();
+
     let spinner = util::setup_spinner("Getting VPK Details...");
-    let details: Vec<workshop::WorkshopItem> = match workshop::get_file_details(&client, &fileids) {
+    let details: Vec<WorkshopItem> = match workshop.get_file_details(&fileids) {
         Ok(details) => details,
         Err(e) => { 
             println!("Request failed: {}", e);
@@ -33,7 +33,7 @@ pub fn handler(_config: &meta::Config) -> Result<(), Box<dyn std::error::Error>>
     spinner.finish_with_message("Fetched VPK Details");
 
     //Setup the list of selected vpks to import, pagination
-    let mut selected_vpks: Vec<workshop::DownloadEntry> = Vec::new();
+    let mut selected_vpks: Vec<DownloadEntry> = Vec::new();
     let mut page_items: Vec<String> = Vec::new();
     let size = fileids.len();
     page_items.reserve(MAX_ITEMS_PER_PAGE);
@@ -61,7 +61,7 @@ pub fn handler(_config: &meta::Config) -> Result<(), Box<dyn std::error::Error>>
         //Save the meta needed to update items later
         for i in selections {
             let item = &details[i];
-            let download = workshop::DownloadEntry {
+            let download = DownloadEntry {
                 title: item.title.to_string(),
                 publishedfileid: item.publishedfileid.to_string(),
                 time_updated: item.time_updated

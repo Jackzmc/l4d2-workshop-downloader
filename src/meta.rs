@@ -6,6 +6,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize)]
 pub struct Config {
     pub gamedir: PathBuf,
+    pub apikey: Option<String>,
+    pub use_proxy_instead: bool,
     pub downloads: Vec<workshop::DownloadEntry>
 }
 

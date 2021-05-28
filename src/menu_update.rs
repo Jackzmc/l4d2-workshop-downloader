@@ -1,4 +1,5 @@
-//TODO: Grab items in json, fetch_vpk_details() -> check if date > old date, download file_url
+use crate::{meta, util, workshop::{Workshop, WorkshopItem}};
+
 use std::{fs};
 use indicatif::{HumanDuration};
 use dialoguer::{theme::ColorfulTheme, Confirm};
@@ -6,9 +7,8 @@ use indicatif::{ProgressBar, ProgressStyle};
 use std::clone::Clone;
 use std::io::Write;
 
-use crate::{meta, util, workshop};
 
-pub fn handler(config: &meta::Config) -> Result<(), Box<dyn std::error::Error>> {
+pub fn handler(config: &meta::Config, workshop: &Workshop) -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::blocking::Client::new();
 
     //Get downloads from meta file & check if any
@@ -26,10 +26,10 @@ pub fn handler(config: &meta::Config) -> Result<(), Box<dyn std::error::Error>> 
 
     //Using above list, get the latest workshop info (key is time_updated)
     let spinner = util::setup_spinner("Fetching Latest File Info...");
-    let details = workshop::get_file_details(&client, &fileids).expect("Failed to get VPK details");
+    let details = workshop.get_file_details(&fileids).expect("Failed to get VPK details");
     spinner.finish_with_message("Fetched");
 
-    let mut outdated: Vec<workshop::WorkshopItem> = Vec::new();
+    let mut outdated: Vec<WorkshopItem> = Vec::new();
 
     for (i, entry) in downloads.iter().enumerate() {
         //TODO: Move '>=' to '>' once testing complete
