@@ -17,7 +17,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut workshop = workshop::Workshop::new(None);
     let config = 
         if let Some(config) = meta::get_config() {
-            workshop.use_proxy(config.use_proxy_instead);
+            workshop.set_use_proxy(config.use_proxy_instead);
             if let Some(apikey) = &config.apikey {
                 workshop.set_apikey(apikey.clone());
             }
@@ -34,7 +34,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             if let Some(prompt_res) = prompt_for_apikey() {
                 config.apikey = prompt_res.apikey;
                 if prompt_res.use_proxy {
-                    workshop.use_proxy(true);
+                    workshop.set_use_proxy(true);
                     config.use_proxy_instead = true
                 }
                 if let Some(apikey) = &config.apikey {
