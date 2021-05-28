@@ -10,18 +10,6 @@ mod menu_manage;
 mod util;
 mod meta;
 
-const SELECTIONS: &[&str] = &[
-    "Import Workshop VPKs",
-    "Update existing VPKs",
-    "Search for new item",
-    "Manage Existing Items"
-];
-
-const INITIAL_SETUP_OPTIONS: &[&str] = &[
-    "Use Current Directory",
-    "Choose a directory",
-];
-
 //#[tokio::main]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("{} v{}", style("L4D2 Workshop Downloader").bold(), env!("CARGO_PKG_VERSION"));
@@ -62,7 +50,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!();
         match Select::with_theme(&ColorfulTheme::default())
             .with_prompt("Pick a option")
-            .items(&SELECTIONS)
+            .items(&[
+                "Import Workshop VPKs",
+                "Update existing VPKs",
+                "Search for new item",
+                "Manage Existing Items"
+            ])
             .interact()
             .unwrap() 
         {
@@ -78,7 +71,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 fn prompt_for_path() -> PathBuf {
     match Select::with_theme(&ColorfulTheme::default())
         .with_prompt("Initial Setup - Set L4D2 Addons Folder")
-        .items(&INITIAL_SETUP_OPTIONS)
+        .items(&[
+            "Use Current Directory",
+            "Choose a directory",
+        ])
         .default(0)
         .interact()
         .unwrap()
