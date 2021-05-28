@@ -6,7 +6,7 @@ Current features:
 
 - ✔️ Import Workshop VPKs
 - ⌛ **(In progress)** Update existing VPKs
-- ❌ Search for items
+- ⌛ **(In progress)** Search for items
 - ❌ Manage existing items
 
 On first setup, it will ask you for your L4D2 addons folder which you can either choose the exe's location (recommended to put it inside the addons folder), or manual path. 
