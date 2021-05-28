@@ -65,10 +65,12 @@ pub struct DownloadEntry {
 pub struct Workshop {
     client: Client,
     apikey: Option<String>,
-    use_proxy: bool
+    use_proxy: bool,
 }
 
+#[allow(dead_code)]
 impl Workshop {
+    ///Creates a new workshop item
     pub fn new(client: Option<Client>) -> Workshop {
         let client = match client {
             Some(client) => client,
@@ -77,7 +79,15 @@ impl Workshop {
         Workshop {
             client: client,
             apikey: None,
-            use_proxy: false
+            use_proxy: false,
+        }
+    }
+
+    ///Gets an authorized workshop, allows access to methods that require api keys. Get api keys from https://steamcommunity.com/dev/apikey
+    pub fn login(self, apikey: String) -> AuthedWorkshop {
+        AuthedWorkshop {
+            apikey: apikey,
+            workshop: self
         }
     }
 
@@ -86,9 +96,13 @@ impl Workshop {
         self
     }
 
-    pub fn use_proxy<'a>(&'a mut self, value: bool) -> &'a mut Workshop {
+    pub fn set_use_proxy<'a>(&'a mut self, value: bool) -> &'a mut Workshop {
         self.use_proxy = value;
         self
+    }
+
+    pub fn use_proxy(&self) -> bool {
+        self.use_proxy
     }
 
     /// Gets all *.vpk files in a directory
@@ -191,6 +205,53 @@ impl Workshop {
                 ("appid", &appid.to_string()),
                 ("return_metadata", "1"),
                 ("key", &self.apikey.as_ref().unwrap()),
+            ])
+            .send()?
+            .json::<WSResponse<WorkshopItem>>()?;
+
+        Ok(details.response.publishedfiledetails.clone())
+    }
+}
+
+pub struct AuthedWorkshop {
+    apikey: String,
+    workshop: Workshop,
+}
+
+impl AuthedWorkshop {
+    pub fn search_ids(&self, appid: u64, query: &str) -> Result<Vec<String>, reqwest::Error> {
+        let details = &self.workshop.client.get("https://api.steampowered.com/IPublishedFileService/QueryFiles/v1/?")
+            .header("User-Agent", format!("L4D2-Workshop-Downloader/v{}", env!("CARGO_PKG_VERSION")))
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .query(&[
+                ("page", "1"),
+                ("numperpage", "20"),
+                ("search_text", query),
+                ("appid", &appid.to_string()),
+                ("key", &self.apikey),
+            ])
+            .send()?
+            .json::<WSResponse<WSSearchBody>>()?;
+
+        let mut fileids: Vec<String> = Vec::new();
+
+        for res in &details.response.publishedfiledetails {
+            fileids.push(res.publishedfileid.to_string());
+        }
+        Ok(fileids)
+    }
+
+    pub fn search_full(&self, appid: u64, query: &str) -> Result<Vec<WorkshopItem>, reqwest::Error> {
+        let details = &self.workshop.client.get("https://api.steampowered.com/IPublishedFileService/QueryFiles/v1/?")
+            .header("User-Agent", format!("L4D2-Workshop-Downloader/v{}", env!("CARGO_PKG_VERSION")))
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .query(&[
+                ("page", "1"),
+                ("numperpage", "20"),
+                ("search_text", query),
+                ("appid", &appid.to_string()),
+                ("return_metadata", "1"),
+                ("key", &self.apikey),
             ])
             .send()?
             .json::<WSResponse<WorkshopItem>>()?;
