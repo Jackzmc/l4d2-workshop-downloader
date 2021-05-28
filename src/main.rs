@@ -15,6 +15,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("{} v{}", style("L4D2 Workshop Downloader").bold(), env!("CARGO_PKG_VERSION"));
     //Grab the config or start initial setup
     let mut workshop = workshop::Workshop::new(None);
+    //TODO: Add option to save file name 
     let config = 
         if let Some(config) = meta::get_config() {
             workshop.set_use_proxy(config.use_proxy_instead);
@@ -29,7 +30,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 gamedir: path,
                 apikey: None,
                 use_proxy_instead: false,
-                downloads: Vec::new()
+                downloads: Vec::new(),
+                include_name: true
             };
             if let Some(prompt_res) = prompt_for_apikey() {
                 config.apikey = prompt_res.apikey;

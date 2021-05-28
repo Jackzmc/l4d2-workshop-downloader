@@ -2,7 +2,7 @@ use crate::workshop::{Workshop, WorkshopItem};
 use crate::util;
 use crate::meta;
 
-use dialoguer::{theme::ColorfulTheme, Input};
+use dialoguer::{Input};
 use console::style;
 
 pub fn handler(_config: &meta::Config , workshop: &Workshop) -> Result<(), Box<dyn std::error::Error>> {

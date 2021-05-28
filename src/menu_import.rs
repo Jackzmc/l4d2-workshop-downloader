@@ -20,8 +20,6 @@ pub fn handler(_config: &meta::Config, workshop: &Workshop) -> Result<(), Box<dy
     }
 
     //Fetch the workshop details for the vpks
-    let client = reqwest::blocking::Client::new();
-
     let spinner = util::setup_spinner("Getting VPK Details...");
     let details: Vec<WorkshopItem> = match workshop.get_file_details(&fileids) {
         Ok(details) => details,
