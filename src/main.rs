@@ -15,8 +15,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     //Grab the config or start initial setup
     let workshop = steamwebapi::Workshop::new(None);
     //TODO: Add option to save file name 
-    let config = 
-        if let Some(config) = meta::get_config() {
+    let mut config = 
+        if let Some(config) = meta::Config::load() {
+            if !&config.gamedir.exists() {
+                eprintln!("Saved game directory does not exist: {}", &config.get_game_path_str().expect("< no path >"));
+                std::process::exit(1);
+            }
             println!("{} \"{}\"", style("Using saved directory:").bold(), &config.get_game_path_str().expect("< no path >"));
             config
         }else {
@@ -30,14 +34,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             if let Some(prompt_res) = prompt_for_apikey() {
                 config.apikey = prompt_res.apikey;
             }
-            
-            std::fs::write("downloader_meta.json", serde_json::to_string(&config)?)?;
+            if let Err(err) = config.save() {
+                eprintln!("Failed to save configuration: {}", err);
+                std::process::exit(1);
+            }
             config
         };
 
     loop {    
         println!();
-        match Select::with_theme(&ColorfulTheme::default())
+        let res = match Select::with_theme(&ColorfulTheme::default())
             .with_prompt("Pick a option")
             .items(&[
                 "Import Workshop VPKs",
@@ -48,11 +54,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .interact()
             .unwrap() 
         {
-            0 => menu_import::handler(&config, &workshop)?,
-            1 => menu_update::handler(&config, &workshop)?,
-            2 => menu_search::handler(&config, &workshop)?,
-            3 => menu_manage::handler(&config, &workshop)?,
-            _ => println!("Option not implemented.")
+            0 => menu_import::handler(&mut config, &workshop)?,
+            1 => menu_update::handler(&mut config, &workshop)?,
+            2 => menu_search::handler(&mut config, &workshop)?,
+            3 => menu_manage::handler(&mut config, &workshop)?,
+            _ => { println!("Option not implemented."); None}
+        };
+        if let Some(_result) = res {
+            
         }
     }
 }
