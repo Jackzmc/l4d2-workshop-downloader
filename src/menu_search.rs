@@ -5,7 +5,7 @@ use crate::meta;
 use dialoguer::{Input};
 use console::style;
 
-pub fn handler(_config: &meta::Config, workshop: &Workshop) -> Result<(), Box<dyn std::error::Error>> {
+pub fn handler(_config: &meta::Config, workshop: &Workshop) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
     let input : String = Input::new()
         .with_prompt("Enter a search query")
         .interact_text()?;
@@ -18,7 +18,7 @@ pub fn handler(_config: &meta::Config, workshop: &Workshop) -> Result<(), Box<dy
                 style("Error").bold().red(),
                 style(err).red()
             );
-            return Ok(())
+            return Ok(None)
         }
     };
     for (i, item) in results.iter().enumerate() {
@@ -26,5 +26,5 @@ pub fn handler(_config: &meta::Config, workshop: &Workshop) -> Result<(), Box<dy
     }
     spinner.finish_and_clear();
 
-    Ok(())
+    Ok(None)
 }

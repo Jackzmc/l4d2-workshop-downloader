@@ -8,15 +8,14 @@ use std::{fs};
 const MAX_ITEMS_PER_PAGE: usize = 20;
 
 
-pub fn handler(_config: &meta::Config, workshop: &Workshop) -> Result<(), Box<dyn std::error::Error>> {
+pub fn handler(config: &mut meta::Config, workshop: &Workshop) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
     //Fetch the current vpks in the workshop directory
     let spinner = util::setup_spinner("Fetching VPKS...");
     let fileids = Workshop::get_vpks_in_folder(&_config.gamedir.join("workshop"))?;
     spinner.finish_with_message("Fetched VPKs");
 
     if fileids.is_empty() {
-        println!("Import complete: No items were to be imported.");
-        return Ok(())
+        return Ok(None)
     }
 
     //Fetch the workshop details for the vpks
@@ -25,14 +24,13 @@ pub fn handler(_config: &meta::Config, workshop: &Workshop) -> Result<(), Box<dy
         Ok(details) => details,
         Err(e) => { 
             println!("Request failed: {}", e);
-            return Ok(())
+            return Ok(None)
         }
     };
     spinner.finish_with_message("Fetched VPK Details");
 
     //Setup the list of selected vpks to import, pagination
-    let mut selected_vpks: Vec<DownloadEntry> = Vec::new();
-    let mut page_items: Vec<String> = Vec::new();
+    let mut selected_vpks: Vec<DownloadEntry> = Vec::with_capacity(fileids.len());
     let size = fileids.len();
     page_items.reserve(MAX_ITEMS_PER_PAGE);
     selected_vpks.reserve(size);
@@ -87,5 +85,5 @@ pub fn handler(_config: &meta::Config, workshop: &Workshop) -> Result<(), Box<dy
         println!("Import was cancelled.");
     }
 
-    Ok(())
+    Ok(None)
 }
