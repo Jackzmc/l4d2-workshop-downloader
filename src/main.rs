@@ -40,12 +40,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             config
         };
+    //TODO: Add arg shortcut to this:
+    //open_menu(&mut config, &workshop, 1);
 
     loop {    
         println!();
 
-        open_menu(&mut config, &workshop, 1);
-        return Ok(());
         let res: usize = Select::with_theme(&ColorfulTheme::default())
             .with_prompt("Pick a option")
             .items(&[
