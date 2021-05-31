@@ -25,12 +25,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             config
         }else {
             let path: PathBuf = prompt_for_path();
-            let mut config = meta::Config {
-                gamedir: path,
-                apikey: None,
-                downloads: Vec::new(),
-                include_name: true
-            };
+            let mut config = meta::Config::new(path);
             if let Some(prompt_res) = prompt_for_apikey() {
                 config.apikey = prompt_res.apikey;
             }
