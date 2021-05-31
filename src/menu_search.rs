@@ -11,7 +11,7 @@ pub fn handler(_config: &meta::Config, workshop: &Workshop) -> Result<Option<uti
         .interact_text()?;
 
     let spinner = util::setup_spinner("Fetching search results...");
-    let results: Vec<WorkshopItem> = match workshop.search_full(550, &input) {
+    let results: Vec<WorkshopItem> = match workshop.search_proxy_full(550, &input) {
         Ok(results) => results,
         Err(err) => {
             println!("{} {}", 
