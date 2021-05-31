@@ -9,6 +9,7 @@ use std::clone::Clone;
 use steamwebapi::{Workshop, WorkshopItem};
 use tokio::runtime::Runtime;
 use std::io::Write;
+use console::style;
 
 struct Download {
     file: std::fs::File,
@@ -18,8 +19,7 @@ struct Download {
 
 const CONCURRENT_REQUESTS: usize = 4;
 
-
-pub fn handler(config: &meta::Config, workshop: &Workshop) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
+pub fn handler(config: &mut meta::Config, workshop: &Workshop) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
 
     //Get downloads from meta file & check if any
@@ -44,7 +44,7 @@ pub fn handler(config: &meta::Config, workshop: &Workshop) -> Result<Option<util
 
     for (i, entry) in downloads.iter().enumerate() {
         //Check if any entry in meta is outdated
-        if details[i].time_updated > entry.time_updated {
+        if details[i].time_updated >= entry.time_updated {
             let duration = std::time::Duration::from_secs(details[i].time_updated as u64 - entry.time_updated as u64);
             if duration.as_secs() < 1800 {
                 println!("Item \"{title}\" is out of date. Last updated recently", title=entry.title);
@@ -80,6 +80,14 @@ pub fn handler(config: &meta::Config, workshop: &Workshop) -> Result<Option<util
             .with_style(ProgressStyle::default_bar()
                 .template("{spinner:.green} [{elapsed_precise}] [{bar:60.cyan/blue}] {pos} / {len} items updated ({percent}%)")
                 .progress_chars("#>-")
+                .tick_strings(&[
+                    "↓    ",
+                    "↓ .  ",
+                    "↓ .. ",
+                    "↓ ...",
+                    ""
+                ])
+                //"―\\|/―\\|/―"
             );
 
         for item in outdated {
@@ -96,7 +104,7 @@ pub fn handler(config: &meta::Config, workshop: &Workshop) -> Result<Option<util
             downloads.push(download);
         }
         progress.tick();
-        progress.enable_steady_tick(1000);
+        progress.enable_steady_tick(500);
 
         let rt = Runtime::new()?;
         rt.block_on(async {
@@ -125,7 +133,10 @@ pub fn handler(config: &meta::Config, workshop: &Workshop) -> Result<Option<util
                                        
                                     },
                                     Err(err) => {
-                                        println!("Download failure for {}: {}", &download.item, err);
+                                        println!("{}\n{}", 
+                                            style(format!("Download for {} failed:\n", &download.item.title)).red().bold(),
+                                            style(err).red()
+                                        );
                                         break;
                                     }
                                 }
@@ -144,6 +155,10 @@ pub fn handler(config: &meta::Config, workshop: &Workshop) -> Result<Option<util
             .for_each(|download| {
                 progress.inc(1);
                 let pb = &progress;
+
+                config.update_download(meta::DownloadEntry::from_item(&download.item));
+                config.save().ok();
+
                 async move {
                     pb.println(format!("Updated {} as {}.vpk", &download.item.title, &download.item.publishedfileid));
                 }
