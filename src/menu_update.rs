@@ -43,7 +43,6 @@ pub fn handler(config: &meta::Config, workshop: &Workshop) -> Result<Option<util
     let mut outdated: Vec<WorkshopItem> = Vec::with_capacity(fileids.len());
 
     for (i, entry) in downloads.iter().enumerate() {
-        //TODO: Move '>=' to '>' once testing complete
         //Check if any entry in meta is outdated
         if details[i].time_updated > entry.time_updated {
             let duration = std::time::Duration::from_secs(details[i].time_updated as u64 - entry.time_updated as u64);
