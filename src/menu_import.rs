@@ -1,14 +1,14 @@
 use crate::util;
-use crate::meta;
+use crate::meta::{DownloadEntry, Config};
 
-use steamwebapi::{Workshop, WorkshopItem, DownloadEntry};
+use steamwebapi::{Workshop, WorkshopItem};
 use dialoguer::{theme::ColorfulTheme, Confirm, MultiSelect};
 use std::{fs};
 
 const MAX_ITEMS_PER_PAGE: usize = 20;
 
 
-pub fn handler(config: &mut meta::Config, workshop: &Workshop) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
+pub fn handler(config: &mut Config, workshop: &Workshop) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
     //Fetch the current vpks in the workshop directory
     let spinner = util::setup_spinner("Fetching VPKS...");
     let fileids = match Workshop::get_vpks_in_folder(&config.gamedir.join("workshop")) {
