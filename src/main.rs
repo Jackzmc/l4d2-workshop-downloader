@@ -25,10 +25,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             config
         }else {
             let path: PathBuf = prompt_for_path();
-            let mut config = meta::Config::new(path);
-            if let Some(prompt_res) = prompt_for_apikey() {
+            let config = meta::Config::new(path);
+            /*if let Some(prompt_res) = prompt_for_apikey() {
                 config.apikey = prompt_res.apikey;
-            }
+            }*/
             if let Err(err) = config.save() {
                 eprintln!("Failed to save configuration: {}", err);
                 std::process::exit(1);
@@ -132,42 +132,4 @@ fn prompt_for_path() -> PathBuf {
         },
         _ => panic!("Item is not valid")
     }
-}
-
-struct ApiKey {
-    apikey: Option<String>,
-}
-
-fn prompt_for_apikey() -> Option<ApiKey> {
-    println!("A Steam Web API Key is required for some functionality. Get an apikey from https://steamcommunity.com/dev/apikey.");
-    println!("Leave blank to disable options");
-    match Select::with_theme(&ColorfulTheme::default())
-        .with_prompt("Select a choice")
-        .items(&[
-            "Enter an Steam Web API Key",
-            "Use Proxy - https://jackz.me/l4d2/search_public.php",
-            "Do not use an apikey (disables some options)"
-        ])
-        .interact()
-        .unwrap() 
-    {
-        0 => {
-            let res = Input::with_theme(&ColorfulTheme::default())
-            .with_prompt("Enter a steam web api key")
-            .interact_text()
-            .unwrap();
-            Some(ApiKey {
-                apikey: Some(res),
-            })
-        },
-        1 => {
-            Some(ApiKey {
-                apikey: None,
-            })
-        },
-        2 => None,
-        _ => panic!("Unreachable")
-    }
-    
-
 }
