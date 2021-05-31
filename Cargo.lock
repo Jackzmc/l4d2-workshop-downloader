@@ -459,6 +459,7 @@ dependencies = [
 name = "l4d2-workshop-manager"
 version = "0.1.0"
 dependencies = [
+ "bytes",
  "console",
  "dialoguer",
  "futures",
