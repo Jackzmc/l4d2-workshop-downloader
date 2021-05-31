@@ -43,25 +43,38 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     loop {    
         println!();
-        let res = match Select::with_theme(&ColorfulTheme::default())
+
+        open_menu(&mut config, &workshop, 1);
+        return Ok(());
+        let res: usize = Select::with_theme(&ColorfulTheme::default())
             .with_prompt("Pick a option")
             .items(&[
                 "Import Workshop VPKs",
                 "Update existing VPKs",
                 "Search for new item",
-                "Manage Existing Items"
+                "Manage Existing Items",
+                "Change Settings"
             ])
             .interact()
-            .unwrap() 
-        {
-            0 => menu_import::handler(&mut config, &workshop)?,
-            1 => menu_update::handler(&mut config, &workshop)?,
-            2 => menu_search::handler(&mut config, &workshop)?,
-            3 => menu_manage::handler(&mut config, &workshop)?,
-            _ => { println!("Option not implemented."); None}
-        };
-        if let Some(_result) = res {
-            
+            .unwrap();
+        open_menu(&mut config, &workshop, res);
+    }
+}
+
+fn open_menu(config: &mut meta::Config, workshop: &steamwebapi::Workshop, number: usize) {
+    let result = match number {
+        0 => menu_import::handler(config, &workshop),
+        1 => menu_update::handler(config, &workshop),
+        2 => menu_search::handler(config, &workshop),
+        3 => menu_manage::handler(config, &workshop),
+        _ => { println!("Option not implemented."); Ok(None)}
+    };
+    match result {
+        Ok(_result) => {
+
+        },
+        Err(err) => {
+            eprintln!("{} {}", style("Menu returned an error:").bold(), err);
         }
     }
 }
@@ -72,6 +85,7 @@ fn prompt_for_path() -> PathBuf {
         .items(&[
             "Use Current Directory",
             "Choose a directory",
+            "Input a path manually"
         ])
         .default(0)
         .interact()
@@ -85,18 +99,42 @@ fn prompt_for_path() -> PathBuf {
                 Some((&["left4dead2.exe"], "left4dead2.exe"))
             ) {
                 Some(file_path) => {
-                    PathBuf::from(file_path)
+                    let path = PathBuf::from(file_path)
                     .parent()
                     .unwrap()
                     .join("left4dead2")
-                    .join("addons")
+                    .join("addons");
+                    if !path.exists() {
+                        println!("A valid directory was not specified. Exiting.");
+                        std::process::exit(1);
+                    }
+                    path
                 },
                 _ => {
                     println!("A valid directory was not specified. Exiting.");
                     std::process::exit(1);
                 }    
             }
-        }
+        },
+        2 => {
+            match Input::<String>::with_theme(&ColorfulTheme::default())
+                .with_prompt("Enter a path")
+                .interact_on(&console::Term::stdout())
+            {
+                Ok(path) => {
+                    let path = PathBuf::from(path);
+                    if !path.exists() {
+                        println!("A valid directory was not specified. Exiting.");
+                        std::process::exit(1);
+                    }
+                    path
+                },
+                Err(e) => {
+                    eprintln!("An error occurred: {}", e);
+                    std::process::exit(1);
+                }
+            }
+        },
         _ => panic!("Item is not valid")
     }
 }
