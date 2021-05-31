@@ -1,8 +1,8 @@
-use steamwebapi::{Workshop, WorkshopItem};
+use steamwebapi::Workshop;
 use crate::util;
 use crate::meta;
 
-use dialoguer::{Input};
+use dialoguer::Input;
 use console::style;
 
 pub fn handler(_config: &meta::Config, workshop: &Workshop) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
@@ -10,21 +10,22 @@ pub fn handler(_config: &meta::Config, workshop: &Workshop) -> Result<Option<uti
         .with_prompt("Enter a search query")
         .interact_text()?;
 
-    let spinner = util::setup_spinner("Fetching search results...");
-    let results: Vec<WorkshopItem> = match workshop.search_proxy_full(550, &input) {
-        Ok(results) => results,
+    //let spinner = util::setup_spinner("Fetching search results...");
+    let results = workshop.search_proxy_full(550, &input, 10);
+    match results {
+        Ok(results) => {
+            println!();
+            for (i, item) in results.iter().enumerate() {
+                println!("{}. {}", i, item.title);
+            }
+        },
         Err(err) => {
-            println!("{} {}", 
-                style("Error").bold().red(),
+            eprintln!("{} {}", 
+                style("Error:").bold().red(),
                 style(err).red()
             );
-            return Ok(None)
         }
-    };
-    for (i, item) in results.iter().enumerate() {
-        println!("{}. {}", i, item.title);
     }
-    spinner.finish_and_clear();
-
+    //spinner.finish_and_clear();
     Ok(None)
 }

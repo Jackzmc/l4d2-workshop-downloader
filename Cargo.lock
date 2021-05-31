@@ -993,7 +993,7 @@ dependencies = [
 [[package]]
 name = "steamwebapi"
 version = "0.1.0"
-source = "git+https://github.com/jackzmc/rs-steamwebapi#cbf5a4876398a1608f602a8276c20294e5e5c911"
+source = "git+https://github.com/jackzmc/rs-steamwebapi#d792102492ff241ca2cd9c9a976c336bafd336f3"
 dependencies = [
  "reqwest",
  "serde",
