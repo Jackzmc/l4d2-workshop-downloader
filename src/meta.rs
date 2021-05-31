@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 pub struct Config {
     pub gamedir: PathBuf,
     pub apikey: Option<String>,
-    pub downloads: Vec<steamwebapi::DownloadEntry>,
+    pub downloads: Vec<DownloadEntry>,
     pub include_name: bool
 }
 
@@ -29,12 +29,21 @@ impl Config {
         Config {
             gamedir: path,
             apikey: None,
-            downloads: Vec::new(),
+            downloads: Vec::<DownloadEntry>::new(),
             include_name: true
         }
     }
 
-    pub fn add_download(&mut self, item: steamwebapi::DownloadEntry) {
+    pub fn update_download(&mut self, item: DownloadEntry) {
+        for (i, itm) in self.downloads.iter().enumerate() {
+            if itm.publishedfileid == item.publishedfileid {
+                self.downloads[i] = item;
+                break;
+            }
+        }
+    }
+
+    pub fn add_download(&mut self, item: DownloadEntry) {
         self.downloads.push(item);
     }
 
@@ -61,3 +70,19 @@ impl Config {
 
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct DownloadEntry {
+    pub title: String,
+    pub publishedfileid: String,
+    pub time_updated: usize
+}
+
+impl DownloadEntry {
+    pub fn from_item(item: &steamwebapi::WorkshopItem) -> DownloadEntry {
+        DownloadEntry {
+            title: item.title.clone(),
+            publishedfileid: item.publishedfileid.clone(),
+            time_updated: item.time_updated
+        }
+    }
+}
