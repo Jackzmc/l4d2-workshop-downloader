@@ -1,7 +1,3 @@
-use dialoguer::{theme::ColorfulTheme, Select, Input};
-use console::style;
-use std::path::PathBuf;
-
 mod menu_import;
 mod menu_update;
 mod menu_search;
@@ -9,8 +5,24 @@ mod menu_manage;
 mod util;
 mod meta;
 
+use dialoguer::{theme::ColorfulTheme, Select, Input};
+use console::style;
+use std::path::PathBuf;
+use clap::{AppSettings, Clap};
+
+#[derive(Clap)]
+#[clap(version = "1.0", author = "Kevin K. <kbknapp@gmail.com>")]
+#[clap(setting = AppSettings::ColoredHelp)]
+struct Opts {
+    #[clap(short, long)]
+    menu: Option<String>,
+    #[clap(short, long, parse(from_occurrences))]
+    verbose: i32,
+}
+
 //#[tokio::main]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let opts: Opts = Opts::parse();
     println!("{} v{}", style("L4D2 Workshop Downloader").bold(), env!("CARGO_PKG_VERSION"));
     //Grab the config or start initial setup
     let workshop = steamwebapi::Workshop::new(None);
@@ -36,7 +48,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             config
         };
     //TODO: Add arg shortcut to this:
-    //open_menu(&mut config, &workshop, 1);
+    if let Some(option) = opts.menu {
+        let menu = match option.as_str() {
+            "import"   | "1" => 1,
+            "update"   | "2" => 2,
+            "manage"   | "3" => 3,
+            "settings" | "4" => 4,
+            _ => { println!("Unknown menu provided: \"{}\"", option); 0 }
+        };
+        if menu > 0 {
+            println!();
+            open_menu(&mut config, &workshop, menu);
+        }
+    }
 
     loop {    
         println!();
@@ -44,11 +68,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let res: usize = Select::with_theme(&ColorfulTheme::default())
             .with_prompt("Pick a option")
             .items(&[
-                "Import Workshop VPKs",
-                "Update existing VPKs",
-                "Search for new item",
-                "Manage Existing Items",
-                "Change Settings"
+                "1. Import Workshop VPKs",
+                "2. Update existing VPKs",
+                "3. Search for new item",
+                "4. Manage Existing Items",
+                "5. Change Settings"
             ])
             .interact()
             .unwrap();
