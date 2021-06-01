@@ -48,7 +48,7 @@ fn prompt_choose_item(items: &[WorkshopSearchItem], itms_dis: &[String]) -> Item
         .interact()
     {
         Ok(index) => {
-            if index > itms_dis.len() {
+            if index == items.len() {
                 return ItemResult::None
             }
             return print_item(&items[index])
