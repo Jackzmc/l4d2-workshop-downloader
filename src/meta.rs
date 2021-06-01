@@ -34,6 +34,15 @@ impl Config {
         }
     }
 
+    pub fn get_download(&self, id: &str) -> Option<&DownloadEntry> {
+        for item in self.downloads.iter() {
+            if item.publishedfileid == id {
+                return Some(&item);
+            }
+        }
+        return None
+    }
+
     pub fn update_download(&mut self, item: DownloadEntry) {
         for (i, itm) in self.downloads.iter().enumerate() {
             if itm.publishedfileid == item.publishedfileid {
