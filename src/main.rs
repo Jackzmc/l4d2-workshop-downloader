@@ -72,7 +72,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 "2. Update Existing VPKs",
                 "3. Search Workshop Items",
                 "4. View Items",
-                "5. Change Settings"
+                "5. Change Settings",
+                "Exit"
             ])
             .interact()
             .unwrap();
@@ -87,7 +88,7 @@ fn open_menu(config: &mut meta::Config, workshop: &steamwebapi::Workshop, number
         1 => menu_update::handler(config, &workshop),
         2 => menu_search::handler(config, &workshop),
         3 => menu_manage::handler(config, &workshop),
-        _ => { println!("Option not implemented."); Ok(None)}
+        _ => std::process::exit(0)
     };
     match result {
         Ok(_result) => {
