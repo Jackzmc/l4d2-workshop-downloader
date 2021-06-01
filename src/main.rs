@@ -52,7 +52,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "import"   | "i" | "1" => 1,
             "update"   | "u" | "2" => 2,
             "search"   | "s" | "3" => 3,
-            "manage"   | "m" | "4" => 4,
+            "view"     | "v" | "4" => 4,
             "settings" | "c" | "5" => 5,
             _ => { println!("Unknown menu provided: \"{}\"", option); 0 }
         };
@@ -71,11 +71,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 "1. Import Workshop VPKs",
                 "2. Update Existing VPKs",
                 "3. Search Workshop Items",
-                "4. Manage Existing Items",
+                "4. View Items",
                 "5. Change Settings"
             ])
             .interact()
             .unwrap();
+        println!();
         open_menu(&mut config, &workshop, res);
     }
 }
