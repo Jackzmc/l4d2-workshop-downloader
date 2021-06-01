@@ -16,11 +16,10 @@ use clap::{AppSettings, Clap};
 struct Opts {
     #[clap(short, long)]
     menu: Option<String>,
-    #[clap(short, long, parse(from_occurrences))]
-    verbose: i32,
+    // #[clap(short, long, parse(from_occurrences))]
+    // verbose: i32,
 }
 
-//#[tokio::main]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let opts: Opts = Opts::parse();
     println!("{} v{}", style("L4D2 Workshop Downloader").bold(), env!("CARGO_PKG_VERSION"));
@@ -50,15 +49,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     //TODO: Add arg shortcut to this:
     if let Some(option) = opts.menu {
         let menu = match option.as_str() {
-            "import"   | "1" => 1,
-            "update"   | "2" => 2,
-            "manage"   | "3" => 3,
-            "settings" | "4" => 4,
+            "import"   | "i" | "1" => 1,
+            "update"   | "u" | "2" => 2,
+            "search"   | "s" | "3" => 3,
+            "manage"   | "m" | "4" => 4,
+            "settings" | "c" | "5" => 5,
             _ => { println!("Unknown menu provided: \"{}\"", option); 0 }
         };
         if menu > 0 {
             println!();
-            open_menu(&mut config, &workshop, menu);
+            open_menu(&mut config, &workshop, menu - 1);
         }
     }
 
@@ -69,8 +69,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .with_prompt("Pick a option")
             .items(&[
                 "1. Import Workshop VPKs",
-                "2. Update existing VPKs",
-                "3. Search for new item",
+                "2. Update Existing VPKs",
+                "3. Search Workshop Items",
                 "4. Manage Existing Items",
                 "5. Change Settings"
             ])
