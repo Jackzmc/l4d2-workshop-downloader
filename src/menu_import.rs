@@ -14,8 +14,8 @@ pub fn handler(config: &mut Config, workshop: &Workshop) -> Result<Option<util::
     let fileids = match Workshop::get_vpks_in_folder(&config.gamedir.join("workshop")) {
         Ok(results) => results,
         Err(err) => {
-            eprintln!("Failed to find VPKs in folder \"{}\": \n{}\n", &config.get_game_path_str().unwrap(), err);
-            std::thread::sleep(std::time::Duration::from_secs(1));
+            spinner.abandon();
+            eprintln!("Failed to find VPKs in workshop folder \"{}\": \n{}\n", &config.get_game_path_str().unwrap(), err);
             return Ok(None)
         }
     };
@@ -30,8 +30,12 @@ pub fn handler(config: &mut Config, workshop: &Workshop) -> Result<Option<util::
     let spinner = util::setup_spinner("Getting VPK Details...");
     let details: Vec<WorkshopItem> = match workshop.get_file_details(&fileids) {
         Ok(details) => details,
-        Err(e) => { 
-            println!("Request failed: {}", e);
+        Err(err) => { 
+            spinner.abandon();
+            eprintln!("{} {}", 
+                console::style("Error:").bold().red(),
+                console::style(err).red()
+            );
             return Ok(None)
         }
     };
