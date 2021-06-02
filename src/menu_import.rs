@@ -19,7 +19,7 @@ pub fn handler(config: &mut Config, workshop: &Workshop) -> Result<Option<util::
             return Ok(None)
         }
     };
-    spinner.finish_with_message("Fetched VPKs");
+    spinner.finish_and_clear();
 
     if fileids.is_empty() {
         println!("There are no items to be imported.");
@@ -39,7 +39,7 @@ pub fn handler(config: &mut Config, workshop: &Workshop) -> Result<Option<util::
             return Ok(None)
         }
     };
-    spinner.finish_with_message("Fetched VPK Details");
+    spinner.finish_and_clear();
 
     //Setup the list of selected vpks to import, pagination
     let mut selected_vpks: Vec<DownloadEntry> = Vec::with_capacity(fileids.len());
@@ -61,7 +61,7 @@ pub fn handler(config: &mut Config, workshop: &Workshop) -> Result<Option<util::
         }
         //Get the selection
         let selections = MultiSelect::with_theme(&ColorfulTheme::default())
-            .with_prompt(format!("Select Workshop Maps (Page {})", page + 1))
+            .with_prompt(format!("Select Addons to Import (Page {})", page + 1))
             .items(&page_items)
             .defaults(&defaults)
             .interact()
@@ -96,8 +96,20 @@ pub fn handler(config: &mut Config, workshop: &Workshop) -> Result<Option<util::
             config.add_download(download);
         }
         match config.save() {
-            Ok(()) => println!("Succesfully imported {} files", item_count),
-            Err(err) => eprintln!("Failed to import files: {}", err)
+            Ok(()) => { 
+                println!("{}\n{}\n{}",
+                    console::style(format!("Succesfully imported {} files", item_count)).bold(), 
+                    "Unsubscribe from the imported addons or they will be loaded twice the next time you start the game.",
+                    "https://steamcommunity.com/id/<your id>/myworkshopfiles/?appid=550&browsefilter=mysubscriptions and click the [Unsubscribe From All] button"
+                );
+            },
+            Err(err) => {
+                eprintln!("{} {}\n{}", 
+                    console::style("Could not save imported items: ").bold().red(),
+                    console::style(err).red(),
+                    console::style("Please move any items back to workshop folder and try again.").italic()
+                )
+            }
         };
     } else {
         println!("Import was cancelled.");

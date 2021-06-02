@@ -66,12 +66,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!();
 
         let res: usize = Select::with_theme(&ColorfulTheme::default())
-            .with_prompt("Pick a option")
+            .with_prompt("Pick a option (use arrow keys to select, enter to confirm)")
             .items(&[
-                "1. View Addons",
-                "2. Search / Download Workshop Items",
-                "3. Import Workshop VPKs",
-                "4. Update Existing VPKs",
+                "1. View Installed Addons",
+                "2. Search / Download Addons",
+                "3. Import Workshop Addons",
+                "4. Update Existing Addons",
                 "5. Change Settings",
                 "Exit"
             ])
