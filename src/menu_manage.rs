@@ -2,22 +2,17 @@ use crate::meta;
 use crate::util;
 
 use steamwebapi::{Workshop, WorkshopItem};
-use regex::Regex;
-use lazy_static::lazy_static;
 use prettytable::{Table, Row, Cell, row, cell};
+use chrono::prelude::*;
 
 pub fn handler(config: &meta::Config, workshop: &Workshop) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
-    lazy_static! {
-        static ref FILENAME_ID_REG: Regex = Regex::new(r"([0-9]{7,})").unwrap();
-    }
     let fileids = match Workshop::get_vpks_in_folder(&config.gamedir) {
         Ok(results) => {
             //Tries to find an ID to parse
             let mut fileids: Vec<String> = Vec::with_capacity(results.len());
             for filename in results.iter() {
-                if let Some(mat) = FILENAME_ID_REG.find(&filename) {
-                    let id = &filename[mat.start()..mat.end()];
-                    fileids.push(id.to_string());
+                if let Some(id) = util::Regexes::get_filename_addonid(&filename) {
+                    fileids.push(id);
                 }
             }
             fileids
@@ -45,11 +40,13 @@ pub fn handler(config: &meta::Config, workshop: &Workshop) -> Result<Option<util
 
     println!("{}", console::style("Workshop Items").bold());
     let mut table = Table::new();
-    table.add_row(row!["Item Name", "File Size", "Status"]);
+    table.add_row(row!["Item Name", "File Size", "Last Update", "Status"]);
 
     for item in details {
+        let mut date = chrono::Utc.timestamp_opt(item.time_updated as i64, 0);
         let status_cell = match config.get_download(&item.publishedfileid) {
             Some(downloaded) => {
+                date = chrono::Utc.timestamp_opt(downloaded.time_updated as i64, 0);
                 if downloaded.time_updated < item.time_updated {
                     Cell::new("Update Available")
                 } else {
@@ -62,7 +59,8 @@ pub fn handler(config: &meta::Config, workshop: &Workshop) -> Result<Option<util
             Row::new(vec![
                 Cell::new(&item.title),
                 Cell::new(&format!("{:.0} MB", item.file_size as f64 * 0.000001)),
-                status_cell
+                Cell::new(&date.unwrap().format("%Y/%m/%d").to_string()),
+                status_cell,
             ])
         );
     }
