@@ -44,25 +44,23 @@ pub fn handler(config: &mut meta::Config, workshop: &Workshop) -> Result<Option<
 
     for (i, entry) in downloads.iter().enumerate() {
         //Check if any entry in meta is outdated
-        if details[i].time_updated >= entry.time_updated {
+        if details[i].time_updated > entry.time_updated {
             let duration = std::time::Duration::from_secs(details[i].time_updated as u64 - entry.time_updated as u64);
-            if duration.as_secs() < 1800 {
-                println!("Item \"{title}\" is out of date. Last updated recently", title=entry.title);
-            }else {
-                let hd = HumanDuration(duration);
-                println!("Item \"{title}\" is out of date. Last update was {hd} ago.", title=entry.title, hd=hd);
-            }
+            let hd = HumanDuration(duration);
+            println!("{title} is out of date. Last update was {hd} ago.", 
+                title=style(&entry.title).bold(), 
+                hd=hd);
             outdated.push(details[i].clone());
         }
     }
 
     if outdated.is_empty() {
-        println!("No items need updating.");
+        println!("All {} addons are up-to-date.", details.len());
         return Ok(None)
     }
 
     let items = outdated.len();
-
+    println!();
     if Confirm::with_theme(&ColorfulTheme::default())
         .with_prompt(format!("Are you sure you want to update {} workshop items?", items))
         .default(true)
