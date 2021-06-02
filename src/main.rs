@@ -49,10 +49,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     //TODO: Add arg shortcut to this:
     if let Some(option) = opts.menu {
         let menu = match option.as_str() {
-            "import"   | "i" | "1" => 1,
-            "update"   | "u" | "2" => 2,
-            "search"   | "s" | "3" => 3,
-            "view"     | "v" | "4" => 4,
+            "view"     | "v" | "1" | "addons" => 1,
+            "search"   | "s" | "2" => 2,
+            "import"   | "i" | "3" => 3,
+            "update"   | "u" | "4" => 4,
             "settings" | "c" | "5" => 5,
             _ => { println!("Unknown menu provided: \"{}\"", option); 0 }
         };
@@ -68,13 +68,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let res: usize = Select::with_theme(&ColorfulTheme::default())
             .with_prompt("Pick a option")
             .items(&[
-                "1. Import Workshop VPKs",
-                "2. Update Existing VPKs",
-                "3. Search Workshop Items",
-                "4. View Items",
+                "1. View Addons",
+                "2. Search / Download Workshop Items",
+                "3. Import Workshop VPKs",
+                "4. Update Existing VPKs",
                 "5. Change Settings",
                 "Exit"
             ])
+            .default(0)
             .interact()
             .unwrap();
         println!();
@@ -84,10 +85,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 fn open_menu(config: &mut meta::Config, workshop: &steamwebapi::Workshop, number: usize) {
     let result = match number {
-        0 => menu_import::handler(config, &workshop),
-        1 => menu_update::handler(config, &workshop),
-        2 => menu_search::handler(config, &workshop),
-        3 => menu_manage::handler(config, &workshop),
+        0 => menu_manage::handler(config, &workshop),
+        1 => menu_search::handler(config, &workshop),
+        2 => menu_import::handler(config, &workshop),
+        3 => menu_update::handler(config, &workshop),
         _ => std::process::exit(0)
     };
     match result {
