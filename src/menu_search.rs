@@ -6,40 +6,64 @@ use steamwebapi::{Workshop, WorkshopSearchItem};
 use dialoguer::{theme::ColorfulTheme, Select, Input};
 
 
-pub fn handler(_config: &meta::Config, workshop: &Workshop) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
+pub fn handler(config: &meta::Config, workshop: &Workshop) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
     let input : String = Input::new()
-        .with_prompt("Enter a search query")
-        .interact_text()?;
+        .with_prompt("Enter a search query or a workshop url")
+        .interact()?;
+
+    if let Some(fileid) = util::Regexes::get_id_from_workshop_url(&input) {
+        let spinner = util::setup_spinner(format!("Fetching workshop item of id {}...", fileid));
+        match workshop.get_file_details(&[fileid]) {
+            Ok(items) => {
+                spinner.finish_and_clear();
+                let item = &items[0];
+                println!("{}", console::style(&item.title).bold());
+            },
+            Err(err) => { 
+                spinner.abandon();
+                eprintln!("{} {}", 
+                    console::style("Error:").bold().red(),
+                    console::style(err).red()
+                );
+                return Ok(None)
+            }
+        }
+    } else {
+        println!("search: {}", input);
+        match workshop.search_proxy_full(550, &input, 10) {
+            Ok(items) => {
+                let mut i: u64 = 0;
+                let mut itms_dis: Vec<String> = items.iter()
+                    .map(|item| { 
+                        let size = indicatif::HumanBytes(item.file_size.parse().unwrap());
+                        i += 1;
+                        format!("{:2}. {} [{}]", i, console::style(&item.title).blue().bright().bold(), size)
+                    })
+                    .collect();
+                itms_dis.push(format!("{}", style("[ Cancel ]").cyan()));
+                //itms_dis.push(format!("{}", style("[ Next Page ➞ ]").green()));
+    
+                println!();
+                match prompt_choose_item(&items, &itms_dis) {
+                    ItemResult::SearchSame => prompt_choose_item(&items, &itms_dis),
+                    ItemResult::SearchAnother => return handler(config, workshop),
+                    _ => return Ok(None)
+                };
+            },
+            Err(err) => eprintln!("{} {}", 
+                style("Error:").bold().red(),
+                style(err).red()
+            )
+        }
+    }
 
     //let spinner = util::setup_spinner("Fetching search results...");
-    match workshop.search_proxy_full(550, &input, 10) {
-        Ok(items) => {
-            let mut i: u64 = 0;
-            let mut itms_dis: Vec<String> = items.iter()
-                .map(|item| { 
-                    let size = indicatif::HumanBytes(item.file_size.parse().unwrap());
-                    i += 1;
-                    format!("{:2}. {} [{}]", i, console::style(&item.title).blue().bright().bold(), size)
-                })
-                .collect();
-            itms_dis.push(format!("{}", style("[ Cancel ]").cyan()));
-            //itms_dis.push(format!("{}", style("[ Next Page ➞ ]").green()));
-
-            println!();
-            match prompt_choose_item(&items, &itms_dis) {
-                ItemResult::SearchSame => prompt_choose_item(&items, &itms_dis),
-                ItemResult::SearchAnother => return handler(_config, workshop),
-                _ => return Ok(None)
-            };
-        },
-        Err(err) => eprintln!("{} {}", 
-            style("Error:").bold().red(),
-            style(err).red()
-        )
-    }
+    
     //spinner.finish_and_clear();
     Ok(None)
 }
+
+//UTIL Methods
 
 fn prompt_choose_item(items: &[WorkshopSearchItem], itms_dis: &[String]) -> ItemResult {
     match Select::with_theme(&ColorfulTheme::default())
