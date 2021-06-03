@@ -9,7 +9,7 @@ use std::{fs};
 const MAX_ITEMS_PER_PAGE: usize = 20;
 
 
-pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
+pub fn handler(menu: &mut util::MenuParams) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
     //Fetch the current vpks in the workshop directory
     let spinner = util::setup_spinner("Fetching VPKS...");
     let folder = &menu.config.gamedir.join("workshop");
@@ -107,12 +107,13 @@ pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<
                 menu.logger.logp(LogLevel::SUCCESS, "MenuImport", &format!("Imported {} workshop items", item_count));
             },
             Err(err) => {
+                let msg = &err.to_string();
                 eprintln!("{} {}\n{}", 
                     console::style("Could not save imported items: ").bold().red(),
-                    console::style(err).red(),
+                    console::style(msg).red(),
                     console::style("Please move any items back to workshop folder and try again.").italic()
                 );
-                menu.logger.logp(LogLevel::ERROR, "MenuImport", &format!("Import failure: {}", err));
+                menu.logger.logp(LogLevel::ERROR, "MenuImport", &format!("Import failure: {}", msg));
             }
         };
     } else {

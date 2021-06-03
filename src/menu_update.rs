@@ -20,7 +20,7 @@ struct Download {
 
 const CONCURRENT_REQUESTS: usize = 4;
 
-pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
+pub fn handler(menu: &mut util::MenuParams) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
 
     //Get downloads from meta file & check if any

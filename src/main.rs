@@ -47,7 +47,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 config.apikey = prompt_res.apikey;
             }*/
             if let Err(err) = config.save() {
-                logger.log(LogLevel::ERROR, format!("Failed to save configuration: {}", err));
+                logger.log(LogLevel::ERROR, &format!("Failed to save configuration: {}", err));
                 eprintln!("Failed to save configuration: {}", err);
                 std::process::exit(1);
             }
@@ -55,7 +55,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             config
         };
 
-    let params = util::MenuParams {
+    let mut params = util::MenuParams {
         config: &mut config,
         workshop: &workshop,
         logger: &logger
@@ -72,8 +72,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         };
         if menu > 0 {
             println!();
-            logger.log(LogLevel::INFO, format!("Flag --menu {} specified, opening menu id {}", option, menu - 1));
-            open_menu(&params, menu - 1);
+            logger.log(LogLevel::INFO, &format!("Flag --menu {} specified, opening menu id {}", option, menu - 1));
+            open_menu(&mut params, menu - 1);
         }
     }
 
@@ -94,13 +94,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .interact()
             .unwrap();
         println!();
-        logger.log(LogLevel::INFO, format!("Opening menu id {}", res));
-        open_menu(&params, res);
+        logger.log(LogLevel::INFO, &format!("Opening menu id {}", res));
+        open_menu(&mut params, res);
 
     }
 }
 
-fn open_menu(params: &util::MenuParams, number: usize) {
+fn open_menu(params: &mut util::MenuParams, number: usize) {
     let result = match number {
         0 => menu_manage::handler(params),
         1 => menu_search::handler(params),

@@ -4,10 +4,13 @@ use console::style;
 use std::fs::OpenOptions;
 use std::io::Write;
 
+const MAX_LOG_SIZE: u64 = 10485760; //10 MB
+
 pub struct Logger {
     file: fs::File
 }
 
+#[derive(Debug)]
 pub enum LogLevel {
     ERROR,
     WARN,
@@ -16,42 +19,46 @@ pub enum LogLevel {
     DEBUG
 }
 
-impl LogLevel {
-    fn name(&self) -> &'static str {
-        stringify!(&self)
-    }
-}
-
+#[allow(dead_code)]
 impl Logger {
     pub fn new(filepath: path::PathBuf) -> Logger {
-        Logger {
-            file: OpenOptions::new()
-                .write(true)
-                .append(true)
-                .open(filepath)
-                .unwrap()
+        let file = OpenOptions::new()
+            .append(true)
+            .create(true)
+            .open(&filepath)
+            .unwrap();
+        
+
+        if file.metadata().unwrap().len() > MAX_LOG_SIZE {
+            file.set_len(0).expect("Could not clear log file, file size is over purge threshold");
         }
+        
+        let logger = Logger {
+            file
+        };
+        logger.log(LogLevel::INFO, &format!("Start of logging session v{}", env!("CARGO_PKG_VERSION")));
+        logger
     }
 
     pub fn log(&self, level: LogLevel, msg: &str) {
         let now: DateTime<Local> = Local::now();
-        let timestamp = now.format("%Y/%m/%d");
-        writeln!(&self.file, "[{}] [{}] {}", 
+        let timestamp = now.format("%F %H:%M:%S %Z");
+        writeln!(&self.file, "[{}] [{:?}] {}", 
             timestamp,
-            level.name(),
+            level,
             msg
-        );
+        ).ok();
     }
 
     pub fn logp(&self, level: LogLevel, prefix: &'static str, msg: &str) {
         let now: DateTime<Local> = Local::now();
-        let timestamp = now.format("%Y/%m/%d");
-        writeln!(&self.file, "[{}] [{}/{}] {}", 
+        let timestamp = now.format("%F %H:%M:%S %Z");
+        writeln!(&self.file, "[{}] [{}/{:?}] {}", 
             timestamp,
             prefix,
-            level.name(),
+            level,
             msg
-        );
+        ).ok();
     }
 
     pub fn info(&self, prefix: &'static str, msg: &str) {

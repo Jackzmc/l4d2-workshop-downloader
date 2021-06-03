@@ -8,7 +8,8 @@ pub struct Config {
     pub gamedir: PathBuf,
     pub apikey: Option<String>,
     pub downloads: Vec<DownloadEntry>,
-    pub include_name: bool
+    pub include_name: bool,
+    pub version: String
 }
 
 #[allow(dead_code)]
@@ -30,7 +31,8 @@ impl Config {
             gamedir: path,
             apikey: None,
             downloads: Vec::<DownloadEntry>::new(),
-            include_name: true
+            include_name: true,
+            version: env!("CARGO_PKG_VERSION").to_string()
         }
     }
 
