@@ -2,8 +2,19 @@ use indicatif::ProgressBar;
 use std::{borrow::Cow};
 use regex::Regex;
 use lazy_static::lazy_static;
-    
+
+use crate::meta::Config;
+use crate::logger::Logger;
+use steamwebapi::Workshop;
+
 pub struct MenuResult {
+
+}
+
+pub struct MenuParams<'a> {
+    pub config: &'a mut Config,
+    pub workshop: &'a Workshop,
+    pub logger: &'a Logger
 }
 
 pub fn setup_spinner(msg: impl Into<Cow<'static, str>>) -> ProgressBar {
