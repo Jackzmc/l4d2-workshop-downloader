@@ -4,14 +4,18 @@ mod menu_search;
 mod menu_manage;
 mod util;
 mod meta;
+mod logger;
 
 use dialoguer::{theme::ColorfulTheme, Select, Input};
 use console::style;
 use std::path::PathBuf;
 use clap::{AppSettings, Clap};
+use logger::LogLevel;
+
+//TODO: Setup file logger
 
 #[derive(Clap)]
-#[clap(version = "1.0", author = "Kevin K. <kbknapp@gmail.com>")]
+#[clap(version = "1.0", author = "Jackz <me@jackz.me>")]
 #[clap(setting = AppSettings::ColoredHelp)]
 struct Opts {
     #[clap(short, long)]
@@ -20,11 +24,13 @@ struct Opts {
     // verbose: i32,
 }
 
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let opts: Opts = Opts::parse();
     println!("{} v{}", style("L4D2 Workshop Downloader").bold(), env!("CARGO_PKG_VERSION"));
     //Grab the config or start initial setup
     let workshop = steamwebapi::Workshop::new(None);
+    let logger = logger::Logger::new(PathBuf::from(std::env::current_dir().unwrap()).join("downloader.log"));
     //TODO: Add option to save file name 
     let mut config = 
         if let Some(config) = meta::Config::load() {
@@ -41,11 +47,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 config.apikey = prompt_res.apikey;
             }*/
             if let Err(err) = config.save() {
+                logger.log(LogLevel::ERROR, format!("Failed to save configuration: {}", err));
                 eprintln!("Failed to save configuration: {}", err);
                 std::process::exit(1);
             }
+            logger.log(LogLevel::INFO, "Saved initial config");
             config
         };
+
+    let params = util::MenuParams {
+        config: &mut config,
+        workshop: &workshop,
+        logger: &logger
+    };
     //TODO: Add arg shortcut to this:
     if let Some(option) = opts.menu {
         let menu = match option.as_str() {
@@ -58,7 +72,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         };
         if menu > 0 {
             println!();
-            open_menu(&mut config, &workshop, menu - 1);
+            logger.info(format!("Flag --menu {} specified, opening menu id {}", option, menu - 1));
+            open_menu(&params, menu - 1);
         }
     }
 
@@ -79,16 +94,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .interact()
             .unwrap();
         println!();
-        open_menu(&mut config, &workshop, res);
+        logger.info(format!("Opening menu id {}", res));
+        open_menu(&params, res);
+
     }
 }
 
-fn open_menu(config: &mut meta::Config, workshop: &steamwebapi::Workshop, number: usize) {
+fn open_menu(params: &util::MenuParams, number: usize) {
     let result = match number {
-        0 => menu_manage::handler(config, &workshop),
-        1 => menu_search::handler(config, &workshop),
-        2 => menu_import::handler(config, &workshop),
-        3 => menu_update::handler(config, &workshop),
+        0 => menu_manage::handler(params),
+        1 => menu_search::handler(params),
+        2 => menu_import::handler(params),
+        3 => menu_update::handler(params),
         _ => std::process::exit(0)
     };
     match result {
