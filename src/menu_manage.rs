@@ -17,7 +17,7 @@ pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<
             fileids
         },
         Err(err) => {
-            menu.logger.error("MenuManage/get_vpks_in_folder", format!("Error finding vpks in \"{}\": \n{}\n", 
+            menu.logger.error("MenuManage/get_vpks_in_folder", &format!("Error finding vpks in \"{}\": \n{}\n", 
                 &menu.config.get_game_path_str().unwrap(), 
                 err
             ));

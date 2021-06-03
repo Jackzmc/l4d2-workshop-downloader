@@ -174,7 +174,7 @@ pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<
 
         });
         println!("{}", console::style(format!("{} items successfully updated.", items)).bold());
-        menu.logger.logp(LogLevel::INFO, "MenuUpdate", format!("{} items successfully updated", items));
+        menu.logger.logp(LogLevel::INFO, "MenuUpdate", &format!("{} items successfully updated", items));
     } else {
         println!("Update was cancelled. Returning to menu.");
     }

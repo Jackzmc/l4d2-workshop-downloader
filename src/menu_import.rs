@@ -17,7 +17,7 @@ pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<
         Ok(results) => results,
         Err(err) => {
             spinner.abandon();
-            menu.logger.error("MenuImport/get_vpks_in_folder", format!("Error finding VPKS in \"{}\": \n{}\n", 
+            menu.logger.error("MenuImport/get_vpks_in_folder", &format!("Error finding VPKS in \"{}\": \n{}\n", 
                 &menu.config.get_game_path_str().unwrap(), 
                 err
             ));
@@ -104,7 +104,7 @@ pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<
                     "Unsubscribe from the imported addons or they will be loaded twice the next time you start the game.",
                     "https://steamcommunity.com/id/<your id>/myworkshopfiles/?appid=550&browsefilter=mysubscriptions and click the [Unsubscribe From All] button"
                 );
-                menu.logger.logp(LogLevel::SUCCESS, "MenuImport", format!("Imported {} workshop items", item_count));
+                menu.logger.logp(LogLevel::SUCCESS, "MenuImport", &format!("Imported {} workshop items", item_count));
             },
             Err(err) => {
                 eprintln!("{} {}\n{}", 
@@ -112,7 +112,7 @@ pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<
                     console::style(err).red(),
                     console::style("Please move any items back to workshop folder and try again.").italic()
                 );
-                menu.logger.logp(LogLevel::ERROR, "MenuImport", format!("Import failure: {}", err));
+                menu.logger.logp(LogLevel::ERROR, "MenuImport", &format!("Import failure: {}", err));
             }
         };
     } else {
