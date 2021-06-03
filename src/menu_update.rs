@@ -19,12 +19,12 @@ struct Download {
 
 const CONCURRENT_REQUESTS: usize = 4;
 
-pub fn handler(config: &mut meta::Config, workshop: &Workshop) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
+pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
 
     //Get downloads from meta file & check if any
-    let downloads = &config.downloads;
-    if config.downloads.is_empty() {
+    let downloads = &menu.config.downloads;
+    if downloads.is_empty() {
         println!("There are no items to update.");
         return Ok(None)
     }
@@ -37,7 +37,7 @@ pub fn handler(config: &mut meta::Config, workshop: &Workshop) -> Result<Option<
     
     //Using above list, get the latest workshop info (key is time_updated)
     let spinner = util::setup_spinner("Fetching Latest File Info...");
-    let details = workshop.get_file_details(&fileids).expect("Failed to get VPK details");
+    let details = menu.workshop.get_file_details(&fileids).expect("Failed to get VPK details");
     spinner.finish_and_clear();
 
     let mut outdated: Vec<WorkshopItem> = Vec::with_capacity(fileids.len());
@@ -67,7 +67,7 @@ pub fn handler(config: &mut meta::Config, workshop: &Workshop) -> Result<Option<
         .interact()
         .unwrap()
     {
-        let directory = config.gamedir.clone();
+        let directory = menu.config.gamedir.clone();
 
         let mut downloads: Vec<Download> = Vec::with_capacity(items);
 
@@ -154,8 +154,8 @@ pub fn handler(config: &mut meta::Config, workshop: &Workshop) -> Result<Option<
                 progress.inc(1);
                 let pb = &progress;
 
-                config.update_download(meta::DownloadEntry::from_item(&download.item));
-                config.save().ok();
+                menu.config.update_download(meta::DownloadEntry::from_item(&download.item));
+                menu.config.save().ok();
 
                 async move {
                     pb.println(format!("Updated {} as {}.vpk", &download.item.title, &download.item.publishedfileid));

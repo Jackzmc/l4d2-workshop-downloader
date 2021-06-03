@@ -1,12 +1,11 @@
-use crate::meta;
 use crate::util;
 
 use steamwebapi::{Workshop, WorkshopItem};
 use prettytable::{Table, Row, Cell, row, cell};
 use chrono::prelude::*;
 
-pub fn handler(config: &meta::Config, workshop: &Workshop) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
-    let fileids = match Workshop::get_vpks_in_folder(&config.gamedir) {
+pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
+    let fileids = match Workshop::get_vpks_in_folder(&menu.config.gamedir) {
         Ok(results) => {
             //Tries to find an ID to parse
             let mut fileids: Vec<String> = Vec::with_capacity(results.len());
@@ -18,13 +17,13 @@ pub fn handler(config: &meta::Config, workshop: &Workshop) -> Result<Option<util
             fileids
         },
         Err(err) => {
-            eprintln!("Failed to find VPKs in folder \"{}\": \n{}\n", &config.get_game_path_str().unwrap(), err);
+            eprintln!("Failed to find VPKs in folder \"{}\": \n{}\n", &menu.config.get_game_path_str().unwrap(), err);
             return Ok(None)
         }
     };
 
     let spinner = util::setup_spinner("Getting VPK Details...");
-    let details: Vec<WorkshopItem> = match workshop.get_file_details(&fileids) {
+    let details: Vec<WorkshopItem> = match menu.workshop.get_file_details(&fileids) {
         Ok(details) => details,
         Err(err) => { 
             spinner.abandon();
@@ -44,7 +43,7 @@ pub fn handler(config: &meta::Config, workshop: &Workshop) -> Result<Option<util
 
     for item in details {
         let mut date = chrono::Utc.timestamp_opt(item.time_updated as i64, 0);
-        let status_cell = match config.get_download(&item.publishedfileid) {
+        let status_cell = match menu.config.get_download(&item.publishedfileid) {
             Some(downloaded) => {
                 date = chrono::Utc.timestamp_opt(downloaded.time_updated as i64, 0);
                 if downloaded.time_updated < item.time_updated {

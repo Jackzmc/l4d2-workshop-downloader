@@ -8,14 +8,14 @@ use std::{fs};
 const MAX_ITEMS_PER_PAGE: usize = 20;
 
 
-pub fn handler(config: &mut Config, workshop: &Workshop) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
+pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
     //Fetch the current vpks in the workshop directory
     let spinner = util::setup_spinner("Fetching VPKS...");
-    let fileids = match Workshop::get_vpks_in_folder(&config.gamedir.join("workshop")) {
+    let fileids = match Workshop::get_vpks_in_folder(&menu.config.gamedir.join("workshop")) {
         Ok(results) => results,
         Err(err) => {
             spinner.abandon();
-            eprintln!("Failed to find VPKs in workshop folder \"{}\": \n{}\n", &config.get_game_path_str().unwrap(), err);
+            eprintln!("Failed to find VPKs in workshop folder \"{}\": \n{}\n", &menu.config.get_game_path_str().unwrap(), err);
             return Ok(None)
         }
     };
@@ -28,7 +28,7 @@ pub fn handler(config: &mut Config, workshop: &Workshop) -> Result<Option<util::
 
     //Fetch the workshop details for the vpks
     let spinner = util::setup_spinner("Getting VPK Details...");
-    let details: Vec<WorkshopItem> = match workshop.get_file_details(&fileids) {
+    let details: Vec<WorkshopItem> = match menu.workshop.get_file_details(&fileids) {
         Ok(details) => details,
         Err(err) => { 
             spinner.abandon();
@@ -87,15 +87,15 @@ pub fn handler(config: &mut Config, workshop: &Workshop) -> Result<Option<util::
         .unwrap()
     {
         //Finally, write the meta info
-        let dest_folder = config.gamedir.clone();
-        let src_folder = config.gamedir.join("workshop");
+        let dest_folder = menu.config.gamedir.clone();
+        let src_folder = menu.config.gamedir.join("workshop");
         //Loop each selected item and move it down a directory (addons/workshop -> addons/)
         for download in selected_vpks {
             let filename = format!("{}.vpk", &download.publishedfileid);
             fs::rename(src_folder.join(&filename), dest_folder.join(&filename))?;
-            config.add_download(download);
+            menu.config.add_download(download);
         }
-        match config.save() {
+        match menu.config.save() {
             Ok(()) => { 
                 println!("{}\n{}\n{}",
                     console::style(format!("Succesfully imported {} files", item_count)).bold(), 

@@ -6,14 +6,14 @@ use steamwebapi::{Workshop, WorkshopSearchItem};
 use dialoguer::{theme::ColorfulTheme, Select, Input};
 
 
-pub fn handler(config: &meta::Config, workshop: &Workshop) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
+pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
     let input : String = Input::new()
         .with_prompt("Enter a search query or a workshop url")
         .interact()?;
 
     if let Some(fileid) = util::Regexes::get_id_from_workshop_url(&input) {
         let spinner = util::setup_spinner(format!("Fetching workshop item of id {}...", fileid));
-        match workshop.get_file_details(&[fileid]) {
+        match menu.workshop.get_file_details(&[fileid]) {
             Ok(items) => {
                 spinner.finish_and_clear();
                 let item = &items[0];
@@ -30,7 +30,7 @@ pub fn handler(config: &meta::Config, workshop: &Workshop) -> Result<Option<util
         }
     } else {
         println!("search: {}", input);
-        match workshop.search_proxy_full(550, &input, 10) {
+        match menu.workshop.search_proxy_full(550, &input, 10) {
             Ok(items) => {
                 let mut i: u64 = 0;
                 let mut itms_dis: Vec<String> = items.iter()
@@ -46,7 +46,7 @@ pub fn handler(config: &meta::Config, workshop: &Workshop) -> Result<Option<util
                 println!();
                 match prompt_choose_item(&items, &itms_dis) {
                     ItemResult::SearchSame => prompt_choose_item(&items, &itms_dis),
-                    ItemResult::SearchAnother => return handler(config, workshop),
+                    ItemResult::SearchAnother => return handler(menu),
                     _ => return Ok(None)
                 };
             },
