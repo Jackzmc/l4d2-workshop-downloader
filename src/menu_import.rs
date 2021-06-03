@@ -1,5 +1,6 @@
 use crate::util;
-use crate::meta::{DownloadEntry, Config};
+use crate::meta::{DownloadEntry};
+use crate::logger::LogLevel;
 
 use steamwebapi::{Workshop, WorkshopItem};
 use dialoguer::{theme::ColorfulTheme, Confirm, MultiSelect};
@@ -11,11 +12,15 @@ const MAX_ITEMS_PER_PAGE: usize = 20;
 pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
     //Fetch the current vpks in the workshop directory
     let spinner = util::setup_spinner("Fetching VPKS...");
-    let fileids = match Workshop::get_vpks_in_folder(&menu.config.gamedir.join("workshop")) {
+    let folder = &menu.config.gamedir.join("workshop");
+    let fileids = match Workshop::get_vpks_in_folder(folder) {
         Ok(results) => results,
         Err(err) => {
             spinner.abandon();
-            eprintln!("Failed to find VPKs in workshop folder \"{}\": \n{}\n", &menu.config.get_game_path_str().unwrap(), err);
+            menu.logger.error("MenuImport/get_vpks_in_folder", format!("Error finding VPKS in \"{}\": \n{}\n", 
+                &menu.config.get_game_path_str().unwrap(), 
+                err
+            ));
             return Ok(None)
         }
     };
@@ -32,10 +37,7 @@ pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<
         Ok(details) => details,
         Err(err) => { 
             spinner.abandon();
-            eprintln!("{} {}", 
-                console::style("Error:").bold().red(),
-                console::style(err).red()
-            );
+            menu.logger.error("MenuImport/get_file_details", &err.to_string());
             return Ok(None)
         }
     };
@@ -102,13 +104,15 @@ pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<
                     "Unsubscribe from the imported addons or they will be loaded twice the next time you start the game.",
                     "https://steamcommunity.com/id/<your id>/myworkshopfiles/?appid=550&browsefilter=mysubscriptions and click the [Unsubscribe From All] button"
                 );
+                menu.logger.logp(LogLevel::SUCCESS, "MenuImport", format!("Imported {} workshop items", item_count));
             },
             Err(err) => {
                 eprintln!("{} {}\n{}", 
                     console::style("Could not save imported items: ").bold().red(),
                     console::style(err).red(),
                     console::style("Please move any items back to workshop folder and try again.").italic()
-                )
+                );
+                menu.logger.logp(LogLevel::ERROR, "MenuImport", format!("Import failure: {}", err));
             }
         };
     } else {

@@ -1,8 +1,7 @@
 use crate::util;
-use crate::meta;
 
 use console::style;
-use steamwebapi::{Workshop, WorkshopSearchItem};
+use steamwebapi::{WorkshopSearchItem};
 use dialoguer::{theme::ColorfulTheme, Select, Input};
 
 
@@ -21,15 +20,11 @@ pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<
             },
             Err(err) => { 
                 spinner.abandon();
-                eprintln!("{} {}", 
-                    console::style("Error:").bold().red(),
-                    console::style(err).red()
-                );
+                menu.logger.error("MenuSearch/get_file_details", &err.to_string());
                 return Ok(None)
             }
         }
     } else {
-        println!("search: {}", input);
         match menu.workshop.search_proxy_full(550, &input, 10) {
             Ok(items) => {
                 let mut i: u64 = 0;
@@ -44,16 +39,15 @@ pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<
                 //itms_dis.push(format!("{}", style("[ Next Page ➞ ]").green()));
     
                 println!();
-                match prompt_choose_item(&items, &itms_dis) {
-                    ItemResult::SearchSame => prompt_choose_item(&items, &itms_dis),
+                match prompt_choose_item(menu, &items, &itms_dis) {
+                    ItemResult::SearchSame => prompt_choose_item(menu, &items, &itms_dis),
                     ItemResult::SearchAnother => return handler(menu),
                     _ => return Ok(None)
                 };
             },
-            Err(err) => eprintln!("{} {}", 
-                style("Error:").bold().red(),
-                style(err).red()
-            )
+            Err(err) => {
+                menu.logger.error("MenuSearch/search_proxy_full", &err.to_string());
+            }
         }
     }
 
@@ -65,7 +59,7 @@ pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<
 
 //UTIL Methods
 
-fn prompt_choose_item(items: &[WorkshopSearchItem], itms_dis: &[String]) -> ItemResult {
+fn prompt_choose_item(menu: &util::MenuParams, items: &[WorkshopSearchItem], itms_dis: &[String]) -> ItemResult {
     match Select::with_theme(&ColorfulTheme::default())
         .with_prompt(format!("Search Results ({} items, page {})", items.len(), 1))
         .items(&itms_dis)
@@ -75,7 +69,7 @@ fn prompt_choose_item(items: &[WorkshopSearchItem], itms_dis: &[String]) -> Item
             if index == items.len() {
                 return ItemResult::None
             }
-            return print_item(&items[index])
+            return print_item(menu, &items[index])
         },
         Err(err) => eprintln!("{} {}", 
             style("Error:").bold().red(),
@@ -85,7 +79,7 @@ fn prompt_choose_item(items: &[WorkshopSearchItem], itms_dis: &[String]) -> Item
     return ItemResult::None;
 }
 
-fn print_item(item: &steamwebapi::WorkshopSearchItem) -> ItemResult {
+fn print_item(menu: &util::MenuParams, item: &steamwebapi::WorkshopSearchItem) -> ItemResult {
     println!();
     println!("{}", style(&item.title).bold().underlined());
     println!("{} views\t{} favorites\t{} subscriptions", &item.views, &item.favorited, &item.subscriptions);
@@ -93,7 +87,7 @@ fn print_item(item: &steamwebapi::WorkshopSearchItem) -> ItemResult {
     println!();
     println!("{}", &item.file_description);
 
-    prompt_item_options(item)
+    prompt_item_options(menu, item)
 }
 
 enum ItemResult {
@@ -102,7 +96,7 @@ enum ItemResult {
     None
 }
 
-fn prompt_item_options(item: &steamwebapi::WorkshopSearchItem) -> ItemResult {
+fn prompt_item_options(menu: &util::MenuParams, item: &steamwebapi::WorkshopSearchItem) -> ItemResult {
     match Select::with_theme(&ColorfulTheme::default())
         .with_prompt("Select an option")
         .default(0)
@@ -126,10 +120,8 @@ fn prompt_item_options(item: &steamwebapi::WorkshopSearchItem) -> ItemResult {
                 _ => return ItemResult::SearchAnother
             }
         },
-        Err(err) => eprintln!("{} {}", 
-            style("Error:").bold().red(),
-            style(err).red()
-        )
+        Err(err) => menu.logger.error("MenuSearch/prompt_item_options", &err.to_string())
+
     }
     return ItemResult::None
 }

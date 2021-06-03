@@ -72,7 +72,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         };
         if menu > 0 {
             println!();
-            logger.info(format!("Flag --menu {} specified, opening menu id {}", option, menu - 1));
+            logger.log(LogLevel::INFO, format!("Flag --menu {} specified, opening menu id {}", option, menu - 1));
             open_menu(&params, menu - 1);
         }
     }
@@ -94,7 +94,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .interact()
             .unwrap();
         println!();
-        logger.info(format!("Opening menu id {}", res));
+        logger.log(LogLevel::INFO, format!("Opening menu id {}", res));
         open_menu(&params, res);
 
     }

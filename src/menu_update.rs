@@ -1,4 +1,5 @@
 use crate::{meta, util};
+use crate::logger::LogLevel;
 
 use std::{fs};
 use futures::{stream, StreamExt};
@@ -6,7 +7,7 @@ use indicatif::{HumanDuration};
 use dialoguer::{theme::ColorfulTheme, Confirm};
 use indicatif::{ProgressBar, ProgressStyle};
 use std::clone::Clone;
-use steamwebapi::{Workshop, WorkshopItem};
+use steamwebapi::{WorkshopItem};
 use tokio::runtime::Runtime;
 use std::io::Write;
 use console::style;
@@ -37,7 +38,14 @@ pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<
     
     //Using above list, get the latest workshop info (key is time_updated)
     let spinner = util::setup_spinner("Fetching Latest File Info...");
-    let details = menu.workshop.get_file_details(&fileids).expect("Failed to get VPK details");
+    let details: Vec<WorkshopItem> = match menu.workshop.get_file_details(&fileids) {
+        Ok(details) => details,
+        Err(err) => { 
+            spinner.abandon();
+            menu.logger.error("MenuUpdate/get_file_details", &err.to_string());
+            return Ok(None)
+        }
+    };
     spinner.finish_and_clear();
 
     let mut outdated: Vec<WorkshopItem> = Vec::with_capacity(fileids.len());
@@ -166,6 +174,7 @@ pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<
 
         });
         println!("{}", console::style(format!("{} items successfully updated.", items)).bold());
+        menu.logger.logp(LogLevel::INFO, "MenuUpdate", format!("{} items successfully updated", items));
     } else {
         println!("Update was cancelled. Returning to menu.");
     }

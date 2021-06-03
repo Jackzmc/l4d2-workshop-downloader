@@ -17,7 +17,10 @@ pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<
             fileids
         },
         Err(err) => {
-            eprintln!("Failed to find VPKs in folder \"{}\": \n{}\n", &menu.config.get_game_path_str().unwrap(), err);
+            menu.logger.error("MenuManage/get_vpks_in_folder", format!("Error finding vpks in \"{}\": \n{}\n", 
+                &menu.config.get_game_path_str().unwrap(), 
+                err
+            ));
             return Ok(None)
         }
     };
@@ -27,10 +30,7 @@ pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<
         Ok(details) => details,
         Err(err) => { 
             spinner.abandon();
-            eprintln!("{} {}", 
-                console::style("Error:").bold().red(),
-                console::style(err).red()
-            );
+            menu.logger.error("MenuManage/get_file_details", &err.to_string());
             return Ok(None)
         }
     };
