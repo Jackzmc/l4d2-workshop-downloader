@@ -28,19 +28,19 @@ pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<
                                 println!("{}", style(format!("{} - Collection", item.title)).bold());
                                 let mut table = Table::new();
                                 table.set_titles(row!["Item Name", "File Size", "Last Update"]);
-                                let mut total_size = 0;
+                                let mut total_bytes = 0;
                                 for child in cinfo {
                                     let date = chrono::Utc.timestamp_opt(item.time_updated as i64, 0);
-                                    total_size += child.file_size;
+                                    total_bytes += child.file_size;
                                     table.add_row(
                                         Row::new(vec![
                                             Cell::new(&child.title),
-                                            Cell::new(&format!("{:.0} MB", child.file_size as f64 * 0.000001)),
+                                            Cell::new(&util::format_bytes(child.file_size)),
                                             Cell::new(&date.unwrap().format("%Y/%m/%d").to_string())
                                         ])
                                     );
                                 }
-                                table.add_row(row!["TOTAL", format!("{:.0} MB", total_size as f64 * 0.000001), ""]);
+                                table.add_row(row!["TOTAL", &util::format_bytes(total_bytes), ""]);
                                 table.printstd();
 
                                 //TODO: Implement downloading

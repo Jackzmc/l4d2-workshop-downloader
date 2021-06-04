@@ -57,7 +57,7 @@ pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<
         table.add_row(
             Row::new(vec![
                 Cell::new(&item.title),
-                Cell::new(&format!("{:.0} MB", item.file_size as f64 * 0.000001)),
+                Cell::new(&util::format_bytes(item.file_size)),
                 Cell::new(&date.unwrap().format("%Y/%m/%d").to_string()),
                 status_cell,
             ])

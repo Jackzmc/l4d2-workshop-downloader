@@ -49,3 +49,15 @@ impl Regexes {
         None
     }
 }
+
+pub fn format_bytes(bytes: u64) -> String {
+    if bytes > 1000000000 {
+        format!("{:.1} GB", bytes as f64 / 1000000000.0)
+    } else if bytes > 1000000 {
+        format!("{:.1} MB", bytes as f64 / 1000000.0)
+    } else if bytes > 1000 {
+        format!("{:.1} KB", bytes as f64 / 1000.0)
+    } else {
+        format!("{} B", bytes)
+    }
+}
