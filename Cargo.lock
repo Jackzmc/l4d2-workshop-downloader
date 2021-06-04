@@ -1205,9 +1205,10 @@ dependencies = [
 
 [[package]]
 name = "steamwebapi"
-version = "0.1.0"
-source = "git+https://github.com/jackzmc/rs-steamwebapi#8f2ea43cc78d3bdb65f748805405d609d6627902"
+version = "0.2.0"
+source = "git+https://github.com/jackzmc/rs-steamwebapi#f58332e28f63058147724843985346d71aeeb8f8"
 dependencies = [
+ "lazy_static",
  "reqwest",
  "serde",
  "serde_json",

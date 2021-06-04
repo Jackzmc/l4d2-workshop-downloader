@@ -48,7 +48,7 @@ pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<
     };
 
     let spinner = util::setup_spinner("Getting VPK Details...");
-    let details: Vec<WorkshopItem> = match menu.workshop.get_file_details(&fileids) {
+    let details: Vec<WorkshopItem> = match menu.workshop.get_published_file_details(&fileids) {
         Ok(details) => details,
         Err(err) => { 
             spinner.abandon();

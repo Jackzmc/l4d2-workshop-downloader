@@ -20,15 +20,15 @@ pub fn handler(menu: &mut util::MenuParams) -> Result<Option<util::MenuResult>, 
 
     if let Some(fileid) = util::Regexes::get_id_from_workshop_url(&input) {
         let spinner = util::setup_spinner(format!("Fetching workshop item of id {}...", fileid));
-        match menu.workshop.get_file_details(&[fileid]) {
+        match menu.workshop.get_published_file_details(&[fileid]) {
             Ok(items) => {
                 let item = &items[0];
                 spinner.finish_and_clear();
-                match menu.workshop.get_file_children_ids(&item.publishedfileid) {
+                match menu.workshop.get_collection_details(&item.publishedfileid) {
                     Ok(Some(children)) => {
                         //Item is a collection of items
                         let spinner = util::setup_spinner("Fetching collection children...");
-                        match menu.workshop.get_file_details(&children) {
+                        match menu.workshop.get_published_file_details(&children) {
                             Ok(cinfo) => {
                                 spinner.finish_and_clear();
                                 println!();
@@ -105,7 +105,7 @@ pub fn handler(menu: &mut util::MenuParams) -> Result<Option<util::MenuResult>, 
             }
         }
     } else {
-        match menu.workshop.search_proxy_full(550, &input, 10) {
+        match menu.workshop.proxy("https://jackz.me/l4d2/scripts/search_public.php".to_owned()).search_full(550, &input, 10) {
             Ok(items) => {
                 let mut i: u64 = 0;
                 let mut itms_dis: Vec<String> = items.iter()

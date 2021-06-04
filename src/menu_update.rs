@@ -26,7 +26,7 @@ pub fn handler(menu: &mut util::MenuParams) -> Result<Option<util::MenuResult>, 
     
     //Using above list, get the latest workshop info (key is time_updated)
     let spinner = util::setup_spinner("Fetching Latest File Info...");
-    let details: Vec<WorkshopItem> = match menu.workshop.get_file_details(&fileids) {
+    let details: Vec<WorkshopItem> = match menu.workshop.get_published_file_details(&fileids) {
         Ok(details) => details,
         Err(err) => { 
             spinner.abandon();
