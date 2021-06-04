@@ -4,7 +4,7 @@ use console::style;
 use std::fs::OpenOptions;
 use std::io::Write;
 
-const MAX_LOG_SIZE: u64 = 10485760; //10 MB
+const MAX_LOG_SIZE: u64 = 1000000; //10 MB
 
 pub struct Logger {
     file: fs::File

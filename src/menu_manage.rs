@@ -39,7 +39,7 @@ pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<
 
     println!("{}", console::style("Workshop Items").bold());
     let mut table = Table::new();
-    table.add_row(row!["Item Name", "File Size", "Last Update", "Status"]);
+    table.set_titles(row!["Item Name", "File Size", "Last Update", "Status"]);
 
     for item in details {
         let mut date = chrono::Utc.timestamp_opt(item.time_updated as i64, 0);
