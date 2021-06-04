@@ -6,7 +6,14 @@ use dialoguer::{theme::ColorfulTheme, Select, Input};
 use prettytable::{Table, Row, Cell, row, cell};
 use chrono::prelude::*;
 
-pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
+/*
+enter link -> is collection? -> print collection info
+                not -> print single info
+search -> select item -> move to is collection? 
+
+*/
+
+pub fn handler(menu: &mut util::MenuParams) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
     let input : String = Input::new()
         .with_prompt("Enter a search query or a workshop url")
         .interact()?;
@@ -25,11 +32,11 @@ pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<
                             Ok(cinfo) => {
                                 spinner.finish_and_clear();
                                 println!();
-                                println!("{}", style(format!("{} - Collection", item.title)).bold());
+                                println!("{}", style(format!("COLLETION: {}", item.title)).bold());
                                 let mut table = Table::new();
                                 table.set_titles(row!["Item Name", "File Size", "Last Update"]);
                                 let mut total_bytes = 0;
-                                for child in cinfo {
+                                for child in &cinfo {
                                     let date = chrono::Utc.timestamp_opt(item.time_updated as i64, 0);
                                     total_bytes += child.file_size;
                                     table.add_row(
@@ -40,9 +47,33 @@ pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<
                                         ])
                                     );
                                 }
-                                table.add_row(row!["TOTAL", &util::format_bytes(total_bytes), ""]);
+                                table.add_row(row![bFg->"    TOTAL FILE SIZE: ", bFg->&util::format_bytes(total_bytes), ""]);
                                 table.printstd();
+                                println!();
 
+                                let choice = Select::with_theme(&ColorfulTheme::default())
+                                    .with_prompt("Select an option: ")
+                                    .items(&[
+                                        "Download Collection",
+                                        "Open collection in browser",
+                                        "Return to menu"
+                                    ])
+                                    .interact().unwrap();
+                                match choice {
+                                    0 => {
+                                        match util::download_addons(menu, &cinfo) {
+                                            Ok(()) => println!("Downloaded {} - {} items", &item.title, cinfo.len()),
+                                            Err(err) => {
+                                                menu.logger.error("MenuSearch/children:download_addons", &err.to_string());
+                                            }
+                                        };
+                                    },
+                                    1 => {
+                                        webbrowser::open(&format!("https://steamcommunity.com/sharedfiles/filedetails/?id={}", &item.publishedfileid)).expect("Could not open in browser");
+                                    },
+                                    2 | _ => return Ok(None)
+
+                                }
                                 //TODO: Implement downloading
                             },
                             Err(err) => {
@@ -52,6 +83,14 @@ pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<
                         }
                     },
                     Ok(None) => {
+                        let choice = Select::with_theme(&ColorfulTheme::default())
+                            .with_prompt("Select an option: ")
+                            .items(&[
+                                "Download Addon",
+                                "Open addon in browser",
+                                "Return to menu"
+                            ])
+                            .interact().unwrap();
                         //Item is a single item
                     },
                     Err(err) => {
@@ -136,6 +175,7 @@ enum ItemResult {
     SearchSame,
     None
 }
+// util::download_addons(menu, &outdated).expect("update failed critically")
 
 fn prompt_item_options(menu: &util::MenuParams, item: &steamwebapi::WorkshopSearchItem) -> ItemResult {
     match Select::with_theme(&ColorfulTheme::default())
@@ -144,8 +184,8 @@ fn prompt_item_options(menu: &util::MenuParams, item: &steamwebapi::WorkshopSear
         .items(&[
             "Download Item",
             "Open item in browser",
-            "Return to selection",
-            "Search a new item"
+            "Select another item",
+            "Search for new item"
         ])
         .interact()
     {

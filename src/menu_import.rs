@@ -8,6 +8,7 @@ use std::{fs};
 
 const MAX_ITEMS_PER_PAGE: usize = 20;
 
+//TODO: Import workshop and non-worksop addons
 
 pub fn handler(menu: &mut util::MenuParams) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
     //Fetch the current vpks in the workshop directory
