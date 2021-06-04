@@ -3,7 +3,8 @@ use crate::util;
 use console::style;
 use steamwebapi::{WorkshopSearchItem};
 use dialoguer::{theme::ColorfulTheme, Select, Input};
-
+use prettytable::{Table, Row, Cell, row, cell};
+use chrono::prelude::*;
 
 pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
     let input : String = Input::new()
@@ -14,9 +15,49 @@ pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<
         let spinner = util::setup_spinner(format!("Fetching workshop item of id {}...", fileid));
         match menu.workshop.get_file_details(&[fileid]) {
             Ok(items) => {
-                spinner.finish_and_clear();
                 let item = &items[0];
-                println!("{}", console::style(&item.title).bold());
+                spinner.finish_and_clear();
+                match menu.workshop.get_file_children_ids(&item.publishedfileid) {
+                    Ok(Some(children)) => {
+                        //Item is a collection of items
+                        let spinner = util::setup_spinner("Fetching collection children...");
+                        match menu.workshop.get_file_details(&children) {
+                            Ok(cinfo) => {
+                                spinner.finish_and_clear();
+                                println!();
+                                println!("{}", style(format!("{} - Collection", item.title)).bold());
+                                let mut table = Table::new();
+                                table.set_titles(row!["Item Name", "File Size", "Last Update"]);
+                                let mut total_size = 0;
+                                for child in cinfo {
+                                    let date = chrono::Utc.timestamp_opt(item.time_updated as i64, 0);
+                                    total_size += child.file_size;
+                                    table.add_row(
+                                        Row::new(vec![
+                                            Cell::new(&child.title),
+                                            Cell::new(&format!("{:.0} MB", child.file_size as f64 * 0.000001)),
+                                            Cell::new(&date.unwrap().format("%Y/%m/%d").to_string())
+                                        ])
+                                    );
+                                }
+                                table.add_row(row!["TOTAL", format!("{:.0} MB", total_size as f64 * 0.000001), ""]);
+                                table.printstd();
+
+                                //TODO: Implement downloading
+                            },
+                            Err(err) => {
+                                spinner.finish_and_clear();
+                                menu.logger.error("MenuSearch/children:get_file_details", &err.to_string());
+                            }
+                        }
+                    },
+                    Ok(None) => {
+                        //Item is a single item
+                    },
+                    Err(err) => {
+                        menu.logger.error("MenuSearch/get_file_children_ids", &err.to_string());
+                    }
+                }
             },
             Err(err) => { 
                 spinner.abandon();
