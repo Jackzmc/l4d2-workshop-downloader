@@ -1,27 +1,15 @@
-use crate::{meta, util};
+use crate::{util};
 use crate::logger::LogLevel;
 
-use std::{fs};
-use futures::{stream, StreamExt};
 use indicatif::{HumanDuration};
 use dialoguer::{theme::ColorfulTheme, Confirm};
-use indicatif::{ProgressBar, ProgressStyle};
 use std::clone::Clone;
 use steamwebapi::{WorkshopItem};
-use tokio::runtime::Runtime;
-use std::io::Write;
 use console::style;
-
-struct Download {
-    file: std::fs::File,
-    success: bool,
-    item: WorkshopItem,
-}
 
 const CONCURRENT_REQUESTS: usize = 4;
 
 pub fn handler(menu: &mut util::MenuParams) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
-    let client = reqwest::Client::new();
 
     //Get downloads from meta file & check if any
     let downloads = &menu.config.downloads;
@@ -75,104 +63,10 @@ pub fn handler(menu: &mut util::MenuParams) -> Result<Option<util::MenuResult>, 
         .interact()
         .unwrap()
     {
-        let directory = menu.config.gamedir.clone();
-
-        let mut downloads: Vec<Download> = Vec::with_capacity(items);
-
         println!("Downloading {} items at a time", CONCURRENT_REQUESTS);
         println!();
 
-        let progress = ProgressBar::new(items as u64)
-            .with_style(ProgressStyle::default_bar()
-                .template("{spinner:.green} [{elapsed_precise}] [{bar:60.cyan/blue}] {pos} / {len} items updated ({percent}%)")
-                .progress_chars("#>-")
-                .tick_strings(&[
-                    "↓    ",
-                    "↓ .  ",
-                    "↓ .. ",
-                    "↓ ...",
-                    ""
-                ])
-                //"―\\|/―\\|/―"
-            );
-
-        for item in outdated {
-            
-            let dest = {
-                let fname = directory.join(format!("{}.vpk", item.publishedfileid));
-                fs::File::create(fname).expect("Could not create file")
-            };
-            let download = Download {
-                file: dest,
-                item: item.clone(),
-                success: false
-            };
-            downloads.push(download);
-        }
-        progress.tick();
-        progress.enable_steady_tick(500);
-
-        let rt = Runtime::new()?;
-        rt.block_on(async {
-            stream::iter(downloads)
-            .map(|mut download: Download| {
-                let client = &client;
-                let pb = &progress;
-                async move {
-                    pb.set_message(format!("{}", &download.item.title));
-                    match client
-                        .get(&download.item.file_url)
-                        .header("User-Agent", "L4D2-Workshop-Downloader")
-                        .send()
-                        .await
-                        
-                    {
-                        Ok(response) => {
-                            let mut stream = response.bytes_stream();
-                            while let Some(result) = stream.next().await {
-                                match result {
-                                    Ok(chunk) => {
-                                        if let Err(err) = download.file.write(&chunk) {
-                                            println!("[{}] Write Error: {}", &download.item.publishedfileid, err);
-                                            break;
-                                        }
-                                       
-                                    },
-                                    Err(err) => {
-                                        println!("{}\n{}", 
-                                            style(format!("Download for {} failed:\n", &download.item.title)).red().bold(),
-                                            style(err).red()
-                                        );
-                                        break;
-                                    }
-                                }
-                            }
-                            download.file.flush().ok();
-                            download.success = true;
-                        },
-                        Err(err) => {
-                            println!("Download failure for {}: {}", &download.item, err);
-                        }
-                    }
-                    download
-                }
-            })
-            .buffer_unordered(CONCURRENT_REQUESTS)
-            .for_each(|download| {
-                progress.inc(1);
-                let pb = &progress;
-
-                menu.config.update_download(meta::DownloadEntry::from_item(&download.item));
-                menu.config.save().ok();
-
-                async move {
-                    pb.println(format!("Updated {} as {}.vpk", &download.item.title, &download.item.publishedfileid));
-                }
-            })
-            .await;
-            progress.finish_and_clear();
-
-        });
+        util::download_addons(menu, &outdated).expect("update failed critically");
         println!("{}", console::style(format!("{} items successfully updated.", items)).bold());
         menu.logger.logp(LogLevel::INFO, "MenuUpdate", &format!("{} items successfully updated", items));
     } else {
