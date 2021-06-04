@@ -1,6 +1,6 @@
 use crate::util;
 
-use steamwebapi::{Workshop, WorkshopItem};
+use steam_workshop_api::{Workshop, WorkshopItem};
 use prettytable::{Table, Row, Cell, row, cell};
 use chrono::prelude::*;
 

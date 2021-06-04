@@ -4,7 +4,7 @@ use crate::logger::LogLevel;
 use indicatif::{HumanDuration};
 use dialoguer::{theme::ColorfulTheme, Confirm};
 use std::clone::Clone;
-use steamwebapi::{WorkshopItem};
+use steam_workshop_api::{WorkshopItem};
 use console::style;
 
 const CONCURRENT_REQUESTS: usize = 4;

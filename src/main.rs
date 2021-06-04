@@ -29,7 +29,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let opts: Opts = Opts::parse();
     println!("{} v{}", style("L4D2 Workshop Downloader").bold(), env!("CARGO_PKG_VERSION"));
     //Grab the config or start initial setup
-    let workshop = steamwebapi::Workshop::new(None);
+    let workshop = steam_workshop_api::Workshop::new(None);
     let logger = logger::Logger::new(PathBuf::from(std::env::current_dir().unwrap()).join("downloader.log"));
     //TODO: Add option to save file name 
     let mut config = 

@@ -1,7 +1,7 @@
 use crate::util;
 
 use console::style;
-use steamwebapi::{WorkshopSearchItem};
+use steam_workshop_api::{WorkshopSearchItem};
 use dialoguer::{theme::ColorfulTheme, Select, Input};
 use prettytable::{Table, Row, Cell, row, cell};
 use chrono::prelude::*;
@@ -159,7 +159,7 @@ fn prompt_choose_item(menu: &util::MenuParams, items: &[WorkshopSearchItem], itm
     return ItemResult::None;
 }
 
-fn print_item(menu: &util::MenuParams, item: &steamwebapi::WorkshopSearchItem) -> ItemResult {
+fn print_item(menu: &util::MenuParams, item: &steam_workshop_api::WorkshopSearchItem) -> ItemResult {
     println!();
     println!("{}", style(&item.title).bold().underlined());
     println!("{} views\t{} favorites\t{} subscriptions", &item.views, &item.favorited, &item.subscriptions);
@@ -177,7 +177,7 @@ enum ItemResult {
 }
 // util::download_addons(menu, &outdated).expect("update failed critically")
 
-fn prompt_item_options(menu: &util::MenuParams, item: &steamwebapi::WorkshopSearchItem) -> ItemResult {
+fn prompt_item_options(menu: &util::MenuParams, item: &steam_workshop_api::WorkshopSearchItem) -> ItemResult {
     match Select::with_theme(&ColorfulTheme::default())
         .with_prompt("Select an option")
         .default(0)

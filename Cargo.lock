@@ -628,7 +628,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
- "steamwebapi",
+ "steam-workshop-api",
  "tinyfiledialogs",
  "tokio",
  "webbrowser",
@@ -1204,9 +1204,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "steamwebapi"
+name = "steam-workshop-api"
 version = "0.2.0"
-source = "git+https://github.com/jackzmc/rs-steamwebapi#f58332e28f63058147724843985346d71aeeb8f8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "70e7cd458732071e002481fd455d954e0ab80c3fc5b7f8d75156ed10eebbce47"
 dependencies = [
  "lazy_static",
  "reqwest",

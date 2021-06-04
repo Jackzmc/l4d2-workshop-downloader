@@ -1,4 +1,4 @@
-use steamwebapi;
+use steam_workshop_api;
 
 use std::{path::PathBuf, io, fs, env};
 use serde::{Deserialize, Serialize};
@@ -18,7 +18,7 @@ impl Config {
         self.gamedir.to_str()
     }
 
-    pub fn format_file(&self, item: &steamwebapi::WorkshopItem) -> String {
+    pub fn format_file(&self, item: &steam_workshop_api::WorkshopItem) -> String {
         if self.include_name {
             format!("{} = {}", title=item.title, id=item.publishedfileid)
         }else{
@@ -89,7 +89,7 @@ pub struct DownloadEntry {
 }
 
 impl DownloadEntry {
-    pub fn from_item(item: &steamwebapi::WorkshopItem) -> DownloadEntry {
+    pub fn from_item(item: &steam_workshop_api::WorkshopItem) -> DownloadEntry {
         DownloadEntry {
             title: item.title.clone(),
             publishedfileid: item.publishedfileid.clone(),

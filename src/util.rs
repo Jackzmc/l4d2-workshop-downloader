@@ -7,7 +7,7 @@ use futures::{stream, StreamExt};
 
 use crate::meta::{Config, DownloadEntry};
 use crate::logger::Logger;
-use steamwebapi::Workshop;
+use steam_workshop_api::Workshop;
 
 pub struct MenuResult {
 
@@ -70,10 +70,10 @@ const CONCURRENT_REQUESTS: usize = 4;
 struct Download {
     file: std::fs::File,
     success: bool,
-    item: steamwebapi::WorkshopItem,
+    item: steam_workshop_api::WorkshopItem,
 }
 
-pub fn download_addons(menu: &mut MenuParams, items: &[steamwebapi::WorkshopItem]) -> Result<(), Box<dyn std::error::Error>> {
+pub fn download_addons(menu: &mut MenuParams, items: &[steam_workshop_api::WorkshopItem]) -> Result<(), Box<dyn std::error::Error>> {
     let progress = ProgressBar::new(items.len() as u64)
     .with_style(ProgressStyle::default_bar()
         .template("{spinner:.green} [{elapsed_precise}] [{bar:60.cyan/blue}] {pos} / {len} items updated ({percent}%)")

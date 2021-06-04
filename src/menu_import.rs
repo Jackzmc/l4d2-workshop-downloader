@@ -2,7 +2,7 @@ use crate::util;
 use crate::meta::{DownloadEntry};
 use crate::logger::LogLevel;
 
-use steamwebapi::{Workshop, WorkshopItem};
+use steam_workshop_api::{Workshop, WorkshopItem};
 use dialoguer::{theme::ColorfulTheme, Confirm, MultiSelect};
 use std::{fs};
 
