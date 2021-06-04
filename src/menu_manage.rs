@@ -4,7 +4,14 @@ use steamwebapi::{Workshop, WorkshopItem};
 use prettytable::{Table, Row, Cell, row, cell};
 use chrono::prelude::*;
 
+struct UnknownFile {
+    filename: String,
+    size: Option<u64>,
+    modified: Option<std::time::SystemTime>
+}
+
 pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
+    let mut unknownid_filenames: Vec<UnknownFile> = Vec::new();
     let fileids = match Workshop::get_vpks_in_folder(&menu.config.gamedir) {
         Ok(results) => {
             //Tries to find an ID to parse
@@ -12,6 +19,21 @@ pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<
             for filename in results.iter() {
                 if let Some(id) = util::Regexes::get_filename_addonid(&filename) {
                     fileids.push(id);
+                } else {
+                    let full_file = format!("{}.vpk", filename);
+                    if let Ok(metadata) = std::fs::metadata(&menu.config.gamedir.join(full_file)) {
+                        unknownid_filenames.push(UnknownFile {
+                            filename: filename.clone(), 
+                            size: Some(metadata.len()),
+                            modified: metadata.modified().ok()
+                        });
+                    } else {
+                        unknownid_filenames.push(UnknownFile {
+                            filename: filename.clone(), 
+                            size: None,
+                            modified: None
+                        });
+                    }
                 }
             }
             fileids
@@ -60,6 +82,27 @@ pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<
                 Cell::new(&util::format_bytes(item.file_size)),
                 Cell::new(&date.unwrap().format("%Y/%m/%d").to_string()),
                 status_cell,
+            ])
+        );
+    }
+    for unknown in unknownid_filenames {
+        let size_cell_text: String = match unknown.size {
+            Some(size) => util::format_bytes(size),
+            None => "n/a".to_owned()
+        };
+        let date_cell_text = match unknown.modified {
+            Some(date) => {
+                let date: DateTime<Local> = date.into();
+                date.format("%Y/%m/%d").to_string()
+            },
+            None => "n/a".to_owned()
+        };
+        table.add_row(
+            Row::new(vec![
+                Cell::new(&unknown.filename),
+                Cell::new(&size_cell_text),
+                Cell::new(&date_cell_text),
+                Cell::new("(No ID Found)"),
             ])
         );
     }
