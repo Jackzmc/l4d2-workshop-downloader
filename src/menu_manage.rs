@@ -1,6 +1,7 @@
 use crate::util;
 
 use steam_workshop_api::{Workshop, WorkshopItem};
+use dialoguer::{theme::ColorfulTheme, Select};
 use prettytable::{Table, Row, Cell, row, cell};
 use chrono::prelude::*;
 
@@ -10,7 +11,7 @@ struct UnknownFile {
     modified: Option<std::time::SystemTime>
 }
 
-pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
+pub fn handler(menu: &mut util::MenuParams) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
     let mut unknownid_filenames: Vec<UnknownFile> = Vec::new();
     let fileids = match Workshop::get_vpks_in_folder(&menu.config.gamedir) {
         Ok(results) => {
@@ -63,18 +64,25 @@ pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<
     let mut table = Table::new();
     table.set_titles(row!["Item Name", "File Size", "Last Update", "Status"]);
 
-    for item in details {
+    let mut b_any_update_available = false;
+    let mut b_external_files_exist = false;
+
+    for item in &details {
         let mut date = chrono::Utc.timestamp_opt(item.time_updated as i64, 0);
         let status_cell = match menu.config.get_download(&item.publishedfileid) {
             Some(downloaded) => {
                 date = chrono::Utc.timestamp_opt(downloaded.time_updated as i64, 0);
                 if downloaded.time_updated < item.time_updated {
+                    b_any_update_available = true;
                     Cell::new("Update Available")
                 } else {
                     Cell::new("Up-to-date")
                 }
             }
-            None => Cell::new("External File")
+            None => {
+                b_external_files_exist = true;
+                Cell::new("Unimported Addon")
+            }
         };
         table.add_row(
             Row::new(vec![
@@ -107,5 +115,35 @@ pub fn handler(menu: &util::MenuParams) -> Result<Option<util::MenuResult>, Box<
         );
     }
     table.printstd();
+
+    match Select::with_theme(&ColorfulTheme::default())
+        .with_prompt("Select an option")
+        .items(&[
+            "Import external files",
+            "Update all addons"
+        ])
+        .interact()
+        .unwrap()
+    {
+        0 => {
+            if b_external_files_exist {
+                for item in details {
+                    if let None = menu.config.get_download(&item.publishedfileid) {
+                        menu.config.add_download(crate::meta::DownloadEntry::from_item(&item));
+                    };
+                }
+            } else {
+                println!("There are no external files to import.");
+            }
+        },
+        1 => {
+            if b_any_update_available {
+                println!("Please use the import main menu for now");
+            } else {
+                println!("There are no addons that have an update.");
+            }
+        },
+        choice => println!("choice {}", choice)
+    }
     Ok(None)
 }
