@@ -132,14 +132,16 @@ pub fn handler(menu: &mut util::MenuParams) -> Result<Option<util::MenuResult>, 
                         menu.config.add_download(crate::meta::DownloadEntry::from_item(&item));
                     };
                 }
-                menu.config.save().ok();
+                if let Err(err) = menu.config.save() {
+                    menu.logger.warn("MenuManage/ImportExt", &format!("Failure while saving -> {}", err));
+                }
             } else {
                 println!("There are no external files to import.");
             }
         },
         1 => {
             if b_any_update_available {
-                println!("Please use the import main menu for now");
+                return crate::menu_update::handler(menu);
             } else {
                 println!("There are no addons that have an update.");
             }
