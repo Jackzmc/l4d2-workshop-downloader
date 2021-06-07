@@ -157,7 +157,13 @@ pub fn download_addons(menu: &mut MenuParams, items: &[steam_workshop_api::Works
             progress.inc(1);
             let pb = &progress;
 
-            menu.config.update_download(DownloadEntry::from_item(&download.item));
+            let entry = DownloadEntry::from_item(&download.item);
+
+            match menu.config.find_download(&entry) {
+                Some(index) => menu.config.downloads[index] = entry,
+                None => menu.config.add_download(entry)
+            }
+
             menu.config.save().ok();
 
             async move {

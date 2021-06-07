@@ -132,6 +132,7 @@ pub fn handler(menu: &mut util::MenuParams) -> Result<Option<util::MenuResult>, 
                         menu.config.add_download(crate::meta::DownloadEntry::from_item(&item));
                     };
                 }
+                menu.config.save().ok();
             } else {
                 println!("There are no external files to import.");
             }

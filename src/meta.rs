@@ -45,6 +45,15 @@ impl Config {
         return None
     }
 
+    pub fn find_download(&self, item: &DownloadEntry) -> Option<usize> {
+        for (i, itm) in self.downloads.iter().enumerate() {
+            if itm.publishedfileid == item.publishedfileid {
+                return Some(i);
+            }
+        }
+        return None
+    }
+
     pub fn update_download(&mut self, item: DownloadEntry) {
         for (i, itm) in self.downloads.iter().enumerate() {
             if itm.publishedfileid == item.publishedfileid {

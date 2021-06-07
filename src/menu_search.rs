@@ -6,13 +6,6 @@ use dialoguer::{theme::ColorfulTheme, Select, Input};
 use prettytable::{Table, Row, Cell, row, cell};
 use chrono::prelude::*;
 
-/*
-enter link -> is collection? -> print collection info
-                not -> print single info
-search -> select item -> move to is collection? 
-
-*/
-
 pub fn handler(menu: &mut util::MenuParams) -> Result<Option<util::MenuResult>, Box<dyn std::error::Error>> {
     let input : String = Input::new()
         .with_prompt("Enter a search query or a workshop url")
